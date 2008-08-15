@@ -7,7 +7,7 @@ CC=gcc $(CFLAGS)
 
 .PHONY: clean
 
-all: _coverage.so
+all: _coverage.so $(python_files)
 
 _coverage.so: _coverage.c
 	$(CC) -shared -o $@ $^
@@ -15,11 +15,11 @@ _coverage.so: _coverage.c
 clean:
 	rm -f *.o *.so *.pyc *~
 
-install: all pyfiles-install default-install
-	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(testrunnerdir)', quiet=1)"
+install: all default-install
+	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(coveragedir)', quiet=1)"
 	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(coveragedir)', quiet=1)"
+	cp -a coverage.py $(DESTDIR)/$(sitedir)/coverage.py
 	install -m 755 _coverage.so $(DESTDIR)$(coveragedir)/
-
 
 include ../Make.rules
 include ../Make.defs
