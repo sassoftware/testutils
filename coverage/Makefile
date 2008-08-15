@@ -14,7 +14,9 @@ _coverage.so: _coverage.c
 clean:
 	rm -f *.o *.so *.pyc *~
 
-install: all install-subdirs pyfiles-install default-install
+install: all pyfiles-install default-install
 	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(testrunnerdir)', quiet=1)"
 	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(coveragedir)', quiet=1)"
 
+include ../Make.rules
+include ../Make.defs
