@@ -21,9 +21,8 @@ SUBDIRS =
 all: default-subdirs default-all
 
 install: all install-subdirs pyfiles-install default-install
-	install constants.py $(DESTDIR)$(rbuilddir)/constants.py
-	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(rbuilddir)', ddir='$(rbuilddir)', quiet=1)"
-	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(rbuilddir)', ddir='$(rbuilddir)', quiet=1)"
+	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(testrunnerdir)', ddir='$(testrunnerdir)', quiet=1)"
+	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(testrunnerdir)', ddir='$(testrunnerdir)', quiet=1)"
 
 dist: default-dist
 
