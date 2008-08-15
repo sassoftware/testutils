@@ -25,7 +25,7 @@ export mandir = $(datadir)/man
 export sitedir = $(libdir)/python$(PYVERSION)/site-packages/
 export testrunnerdir = $(sitedir)/testrunner
 export testutilsdir = $(sitedir)/testutils
-export coveragedir = $(sitedir)/coverage
+export coveragedir = $(sitedir)
 export initdir = /etc/init.d
 export sysconfdir = /etc/sysconfig
 
