@@ -10,8 +10,6 @@ import testhelp
 from testrunner import resources
 
 def setup():
-    import epdb
-    epdb.st()
     setupResources()
 
 def setupResources():

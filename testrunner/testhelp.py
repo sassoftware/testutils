@@ -846,9 +846,9 @@ class TestSuiteHandler(object):
         argsUsedAsFilter = set()
         for (dirpath, dirnames, filenames) in os.walk(topdir):
             for f in filenames:
-                if (f.startswith('test') and f.endswith('.py')
+                if (f.endswith('test.py') and not f.startswith('.')
                     or (f.endswith('test.py') and not f.startswith('.')
-                        and f != 'testsuite.py')
+                        and f != 'testsuite.py' and f != 'testSetup.py')
                     # if it is foo/tests/__init__.py, add foo.tests to
                     # our list
                     or (f == '__init__.py'
