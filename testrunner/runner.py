@@ -59,6 +59,9 @@ def setup():
     resources.testPath = testPath = testhelp.getTestPath()
     resources.conaryDir = conaryDir = os.environ['CONARY_PATH']
     resources.archivePath = archivePath = testhelp.getArchivePath(testPath)
+    if archivePath is None:
+        resources.archivePath = archivePath = testhelp.getArchivePath(
+                                                os.environ['CONARY_TEST_PATH'])
 
     from conary.lib import util
     sys.excepthook = util.genExcepthook(True, catchSIGUSR1=False)
