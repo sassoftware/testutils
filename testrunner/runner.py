@@ -10,10 +10,7 @@ import unittest
 import testhelp
 from testhelp import context, TestCase, findPorts, SkipTestException
 
-import epdb
-epdb.st()
 from testrunner import resources
-
 
 archivePath = None
 testPath = None
