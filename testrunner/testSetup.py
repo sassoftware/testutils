@@ -14,5 +14,8 @@ def setup():
 
 def setupResources():
     resources.testPath = testhelp.getTestPath("testsuite")
-    resources.archivePath = os.environ['CONARY_TEST_PATH'] + '/archive'
+    if 'CONARY_TEST_PATH' in os.environ:
+        resources.archivePath = os.environ.get('CONARY_TEST_PATH') + '/archive'
+    else:
+        resources.testPath = resources.testPath + '/archive'
     resources.conaryDir = os.environ['CONARY_PATH']
