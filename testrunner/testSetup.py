@@ -17,5 +17,5 @@ def setupResources():
     if 'CONARY_TEST_PATH' in os.environ:
         resources.archivePath = os.environ.get('CONARY_TEST_PATH') + '/archive'
     else:
-        resources.testPath = resources.testPath + '/archive'
+        resources.archivePath = resources.testPath + '/archive'
     resources.conaryDir = os.environ['CONARY_PATH']
