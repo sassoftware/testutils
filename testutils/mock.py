@@ -57,8 +57,11 @@ def test():
 TODO: set the return values for particular function calls w/ particular
 parameters.
 """
+
+import inspect
 import new
 import sys
+
 
 _mocked = []
 
@@ -358,7 +361,16 @@ def mockFunction(function, returnValue=_NO_RETURN_VALUE):
 def mock(obj, attr, returnValue=_NO_RETURN_VALUE):
     m = MockObject()
     if hasattr(obj, attr):
-        m._mock.origValue = getattr(obj, attr)
+        if inspect.isclass(obj):
+            # Looks like a class; try to get the underlying property
+            # instead of its "bound" value. This will preserve static
+            # methods and other magical items.
+            origValues = dict((x[0], x[3]) for x in
+                inspect.classify_class_attrs(obj))
+            m._mock.origValue = origValues[attr]
+        else:
+            # Not a class so just grab the attribute.
+            m._mock.origValue = getattr(obj, attr)
     setattr(obj, attr, m)
     if returnValue is not _NO_RETURN_VALUE:
         m._mock.setDefaultReturn(returnValue)
