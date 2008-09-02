@@ -3,6 +3,7 @@ import errno
 import fcntl
 import gc
 import grp
+import itertools
 import sys
 import os
 import os.path
@@ -956,6 +957,13 @@ class TestSuiteHandler(object):
                 return
 
             results = runner.run(suite)
+            if results.erroredTests or results.failedTests:
+                print 'Failed tests:'
+                for test, tb in itertools.chain(results.errors,
+                                                results.failures):
+                    name = test._TestCase__testMethodName
+                    print '%s.%s.%s' % (test.__class__.__module__,
+                                        test.__class__.__name__, name)
 
             if options.stat_file:
                 outputStats(results, open(statFile, 'w'))
