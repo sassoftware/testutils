@@ -229,7 +229,11 @@ class MockManager(object):
 
     def assertCalled(self, *args, **kw):
         kw = tuple(sorted(kw.items()))
-        assert((args, kw) in self.calls)
+        if (args, kw) not in self.calls:
+            expected = formatArguments(args, kw)
+            got = ', '.join(formatArguments(x[0], x[1]) for x in self.calls)
+            raise AssertionError("expected call arguments to be %s, got %s"
+                % (expected, got))
         self.calls.remove((args, kw))
 
     def assertNotCalled(self):
@@ -330,6 +334,18 @@ def attach(obj):
                                                  obj.__class__))
     oldsetattr('__getattribute__', new.instancemethod(getattribute,
                                                       obj, obj.__class__))
+
+
+def formatArguments(args, kwargs):
+    out = []
+    if args:
+        fmt_args = ', '.join(repr(x) for x in args)
+        out.append(fmt_args)
+    if kwargs:
+        fmt_kwargs = ', '.join('%s=%r' % (x, y) for (x, y) in kwargs.items())
+        out.append(fmt_kwargs)
+    return '(' + (', '.join(out)) + ')'
+
 
 _NO_RETURN_VALUE = object()
 
