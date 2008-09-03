@@ -761,7 +761,7 @@ class TestSuiteHandler(object):
         return [os.path.dirname(sys.modules['testsuite'].__file__)]
 
     def runCoverage(self, options, argv):
-        import coveragewrapper
+        from testrunner import coveragewrapper
         environ = coveragewrapper.getEnviron()
 
         stateFile = options.stat_file
