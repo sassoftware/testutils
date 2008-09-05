@@ -7,6 +7,7 @@
 Shared module for resources used by the testsuite, esp. paths
 to code and data.
 '''
+from testrunner import testcfg
 
 ## archivePath
 #
@@ -23,3 +24,4 @@ conaryDir = None
 #
 # Root of the testsuite being executed
 testPath = None
+cfg = testcfg.TestConfig()
