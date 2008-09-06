@@ -6,6 +6,7 @@ import sys
 import types
 import unittest
 
+from testrunner import coveragewrapper
 from testrunner import output
 from testrunner import testsuite
 
