@@ -25,7 +25,7 @@ ConaryTestSuite = testhandler.ConaryTestSuite
 from testcase import TestCase
 from testrunner.output import SkipTestException, DebugTestRunner
 
-from testrunner.loader import Loader
+from testrunner.testhandler import Loader
 
 global _handler
 _handler = None
@@ -87,48 +87,6 @@ def getTempDir(prefix):
             break
     return dl
 
-def getHandlerClass(suiteClass_, getCoverageDirsFn, getExcludeDirsFn=None,
-                    sortTestsFn=None):
-    class GeneratedHandlerClass(TestSuiteHandler):
-        suiteClass = suiteClass_
-        def sortTests(self, tests):
-            if sortTestsFn:
-                return sortTestsFn(tests)
-            return tests
-
-        def getCoverageDirs(self, environ):
-            return getCoverageDirsFn(self, environ)
-
-        def getCoverageExclusions(self, environ):
-	    if getExcludeDirsFn:
-                return getExcludeDirsFn(self, environ)
-	    return []
-
-    return GeneratedHandlerClass
-
-from testrunner import testhandler
-class TestSuiteHandler(testhandler.TestSuiteHandler):
-
-    suiteClass = unittest.TestSuite
-
-    def __init__(self, individual, topdir, conaryDir, testPath):
-        global _handler
-        global _conaryDir
-        _handler = self
-        _conaryDir = conaryDir
-        cfg = resources.cfg
-        cfg.isIndividual = individual
-        cfg.cleanTestDirs = not individual
-        resources.testPath = testPath
-        resources.conaryDir = conaryDir
-        testhandler.TestSuiteHandler.__init__(self, cfg, resources, None, self.suiteClass)
-
-    def getCoverageExclusions(self, environ):
-        return []
-
-    def getCoverageDirs(self, environ):
-        return [os.path.dirname(sys.modules['testsuite'].__file__)]
-
 def getPath(envName, default=None):
     if envName in os.environ:
         return os.path.realpath(os.environ[envName])
@@ -181,6 +139,52 @@ def getArchivePath(testDir):
 
     return None
 
+
+# backwards compatible code
+def getHandlerClass(suiteClass_, getCoverageDirsFn, getExcludeDirsFn=None,
+                    sortTestsFn=None):
+    class GeneratedHandlerClass(TestSuiteHandler):
+        suiteClass = suiteClass_
+        def sortTests(self, tests):
+            if sortTestsFn:
+                return sortTestsFn(tests)
+            return tests
+
+        def getCoverageDirs(self, environ):
+            return getCoverageDirsFn(self, environ)
+
+        def getCoverageExclusions(self, environ):
+	    if getExcludeDirsFn:
+                return getExcludeDirsFn(self, environ)
+	    return []
+
+    return GeneratedHandlerClass
+
+
+# Backwards compatible testsuite handler.  We should get rid of this.
+from testrunner import testhandler
+class TestSuiteHandler(testhandler.TestSuiteHandler):
+
+    suiteClass = unittest.TestSuite
+
+    def __init__(self, individual, topdir, conaryDir, testPath):
+        global _handler
+        global _conaryDir
+        _handler = self
+        _conaryDir = conaryDir
+        cfg = resources.cfg
+        cfg.isIndividual = individual
+        cfg.cleanTestDirs = not individual
+        resources.testPath = testPath
+        resources.conaryDir = conaryDir
+        testhandler.TestSuiteHandler.__init__(self, cfg, resources, None, self.suiteClass)
+
+    def getCoverageExclusions(self, environ):
+        return []
+
+    def getCoverageDirs(self, environ):
+        return [os.path.dirname(sys.modules['testsuite'].__file__)]
+
 def main(argv=[], individual=True, handlerClass=TestSuiteHandler):
     from conary.lib import util
     sys.excepthook = util.genExcepthook(True, catchSIGUSR1=False)
@@ -191,3 +195,4 @@ def main(argv=[], individual=True, handlerClass=TestSuiteHandler):
     if results is None:
         sys.exit(0)
     sys.exit(not results.wasSuccessful())
+
