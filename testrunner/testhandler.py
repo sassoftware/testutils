@@ -8,7 +8,6 @@ import unittest
 
 from testrunner import coveragewrapper
 from testrunner import output
-from testrunner import testsuite
 
 class Loader(unittest.TestLoader):
 
@@ -369,11 +368,11 @@ class _TestSuiteHandler(object):
         return parser
 
     def parseOptions(self, parser, argv):
-        return parser.parse_args(argv)
+        return parser.parse_args(argv[1:])
 
     def main(self, argv):
         parser = self.addOptions()
-        options, args = self.parseOptions(parser, argv[1:])
+        options, args = self.parseOptions(parser, argv)
         return self.runTests(options, args)
 
 class CoverageTestSuiteHandler(_TestSuiteHandler):
@@ -387,6 +386,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
         return self.cfg.coverageDirs
 
     def runCoverage(self, options, argv):
+        environ = coveragewrapper.getEnviron()
         stateFile = options.stat_file
         if options.patch_coverage:
             filesToCover = options.patch_coverage
@@ -431,7 +431,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
             raise RuntimeError, 'no such file(s): %s' % ' '.join(notExists)
 
         cw = coveragewrapper.CoverageWrapper(environ['coverage'],
-                                             self.testPath + '/.coverage',
+                                             self.resources.testPath + '/.coverage',
                                              os.getcwd() + '/annotate',
                                              baseDirs)
         if not options.resume:
@@ -489,7 +489,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
 
 
     def parseOptions(self, parser, argv):
-        options, args = parser.parse_args(argv)
+        options, args = parser.parse_args(argv[1:])
         if options.coverage or options.patch_coverage or options.patch_file or options.push_coverage:
             if not options.already_covering:
                 retval = self.runCoverage(options, argv)
