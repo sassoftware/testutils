@@ -54,7 +54,7 @@ class PythonModule(object):
             path = os.environ[self.environName]
             if os.path.exists(path):
                 return path
-        for i in range(3):
+        for i in range(4):
             path = moduleDir + '/%s%s' % ('../' * i,
                                            os.path.basename(self.reposName))
             if os.path.exists(path):
@@ -145,7 +145,7 @@ class ModuleLoader(object):
                 _link(subDirPath, pythonPathSubDir)
 
     def _clone(self, module, targetDir):
-        print 'Cloning %s to %s...' % (module.moduleName, targetDir)
+        print 'Cloning %s to %s (set %s to use existing version)...' % (module.moduleName, targetDir, module.environName)
         dest = '%s/%s' % (targetDir, os.path.basename(module.reposName))
         _remove(dest)
         os.system('hg clone %s/%s %s' % (self.repositoryLocation, module.reposName, dest))
