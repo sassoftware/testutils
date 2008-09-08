@@ -31,7 +31,7 @@ class PythonModule(object):
         self.reposName = reposName
         if environName is None:
             environName = os.path.basename(moduleName)
-            environName = moduleName.upper().replace('-', '_') + '_PATH'
+            environName = environName.upper().replace('-', '_') + '_PATH'
         self.environName = environName
         if test is None:
             test = 'import %s' % moduleName
@@ -113,7 +113,7 @@ class ModuleLoader(object):
                 if module.setup:
                     os.system('cd %s; %s' % (path, module.setup))
             else:
-                raise RuntimeError('could not find module %s' % module.name)
+                return
         if not path.startswith('/'):
             path = os.path.join(self.moduleDir, path)
         path = os.path.realpath(path)
@@ -145,10 +145,10 @@ class ModuleLoader(object):
                 _link(subDirPath, pythonPathSubDir)
 
     def _clone(self, module, targetDir):
-        print 'Cloning %s to %s...' % (module, targetDir)
-        dest = '%s/%s' % (targetDir, os.path.basename(module))
+        print 'Cloning %s to %s...' % (module.moduleName, targetDir)
+        dest = '%s/%s' % (targetDir, os.path.basename(module.reposName))
         _remove(dest)
-        os.system('hg clone %s/%s %s' % (self.repository, module.reposName, dest))
+        os.system('hg clone %s/%s %s' % (self.repositoryLocation, module.reposName, dest))
         if not os.path.exists(dest):
             return None
         return dest
@@ -171,6 +171,10 @@ def _link(source, target):
 
 def loadModules(moduleList, topDir='..'):
     m = ModuleLoader(moduleList, topDir, 'ssh://scc.eng.rpath.com//hg/')
-    m.loadModules()
-    m.testModules()
+    try:
+        m.loadModules()
+        m.testModules()
+    except Exception, e:
+        import epdb
+        epdb.post_mortem(sys.exc_info()[2])
     os.environ['PYTHONPATH'] = ':'.join(sys.path)
