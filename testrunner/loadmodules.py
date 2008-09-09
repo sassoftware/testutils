@@ -91,6 +91,7 @@ class ModuleLoader(object):
         self.moduleDir = moduleDir
         self.pythonPathDir = pythonPathDir
         self.moduleList = moduleList
+        self.shouldClone = shouldClone
 
     def loadModules(self):
         if not os.path.exists(self.moduleDir):
@@ -170,8 +171,9 @@ def _link(source, target):
     os.symlink(source, target)
 
 
-def loadModules(moduleList, topDir='..'):
-    m = ModuleLoader(moduleList, topDir, 'ssh://scc.eng.rpath.com//hg/')
+def loadModules(moduleList, topDir='..', shouldClone=False):
+    m = ModuleLoader(moduleList, topDir, shouldClone=shouldClone,
+                     'http://scc.eng.rpath.com//hg/')
     try:
         m.loadModules()
         m.testModules()
