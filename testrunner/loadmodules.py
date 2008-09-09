@@ -83,7 +83,8 @@ class ModuleLoader(object):
     directories should be stored.
     @param repositoryLocation: location of mercurial repositories
     """
-    def __init__(self, moduleList, topDir, repositoryLocation=None):
+    def __init__(self, moduleList, topDir, shouldClone=False,
+                 repositoryLocation=None):
         moduleDir = os.path.realpath(topDir + '/supporting_modules')
         pythonPathDir = os.path.realpath(topDir + '/pythonpath')
         self.repositoryLocation = repositoryLocation
@@ -108,7 +109,7 @@ class ModuleLoader(object):
     def loadModule(self, module):
         path = module.find(self.moduleDir)
         if not path:
-            if module.shouldClone:
+            if self.shouldClone and module.shouldClone:
                 path = self._clone(module, self.moduleDir)
                 if module.setup:
                     os.system('cd %s; %s' % (path, module.setup))
