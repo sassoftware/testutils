@@ -17,7 +17,6 @@ import tempfile
 import types
 import unittest
 
-from testrunner import resources
 from testrunner.decorators import context
 from testrunner import testhandler
 ConaryTestSuite = testhandler.ConaryTestSuite
@@ -172,6 +171,7 @@ class TestSuiteHandler(testhandler.TestSuiteHandler):
         global _conaryDir
         _handler = self
         _conaryDir = conaryDir
+        from testrunner import resources
         cfg = resources.cfg
         cfg.isIndividual = individual
         cfg.cleanTestDirs = not individual

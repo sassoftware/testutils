@@ -11,7 +11,6 @@ import tempfile
 import types
 import unittest
 
-from testrunner import resources
 
 class LogFilter:
     def __init__(self):
@@ -125,6 +124,7 @@ class TestCase(unittest.TestCase):
         self.logFilter = LogFilter()
         self.owner = pwd.getpwuid(os.getuid())[0]
         self.group = grp.getgrgid(os.getgid())[0]
+        from testrunner import resources
         self.resources = resources
 
         self.conaryDir = resources.conaryDir

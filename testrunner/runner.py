@@ -10,7 +10,6 @@ import unittest
 import testhelp
 from testhelp import context, TestCase, findPorts, SkipTestException
 
-from testrunner import resources
 
 archivePath = None
 testPath = None
@@ -56,6 +55,7 @@ def setup():
     global testPath
     global archivePath
     global conaryDir
+    from testrunner import resources
     resources.testPath = testPath = testhelp.getTestPath()
     resources.conaryDir = conaryDir = os.environ['CONARY_PATH']
     resources.archivePath = archivePath = testhelp.getArchivePath(

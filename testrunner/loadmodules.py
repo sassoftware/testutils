@@ -61,16 +61,19 @@ class PythonModule(object):
                 path = os.path.realpath(path)
                 return path
 
-    def test(self):
+    def test(self, raiseError=True):
         """
         Ensure that this module has been loaded successfully.
         """
         if self.testString:
             try:
                 exec self.testString
+                return True
             except Exception, e:
-                raise RuntimeError('Error testing %s: %s' % (self.moduleName, e))
-
+                if raiseError:
+                    raise RuntimeError('Error testing %s: %s' % (self.moduleName, e))
+                else:
+                    return False
 
 
 class ModuleLoader(object):
@@ -115,6 +118,7 @@ class ModuleLoader(object):
                 if module.setup:
                     os.system('cd %s; %s' % (path, module.setup))
             else:
+                module.test(raiseError=False)
                 return
         if not path.startswith('/'):
             path = os.path.join(self.moduleDir, path)
@@ -173,7 +177,7 @@ def _link(source, target):
 
 def loadModules(moduleList, topDir='..', shouldClone=False):
     m = ModuleLoader(moduleList, topDir, shouldClone=shouldClone,
-                     'http://scc.eng.rpath.com//hg/')
+                     repositoryLocation='http://scc.eng.rpath.com//hg/')
     try:
         m.loadModules()
         m.testModules()
