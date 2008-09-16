@@ -1,0 +1,46 @@
+#!/usr/bin/python
+# reads in a patch and outputs the modified lines for each file in this format:
+# path
+# <lineno> <lineno>
+# 
+import os
+import sys
+
+fileDict = {}
+
+baseDir = os.getcwd()
+extraDirs = 0
+
+for item in sys.argv[1:]:
+    if item.startswith('-p'):
+        extraDirs = True
+    else:
+        baseDir = item
+
+baseDir = os.path.realpath(baseDir)
+
+newFile = None
+for line in sys.stdin.readlines():
+    if line.startswith('---'):
+        oldFile = line.split()[1]
+    elif line.startswith('+++'):
+        newFile = line.split()[1]
+        if extraDirs:
+            while not os.path.exists(os.path.join(baseDir, newFile)):
+                newFile = os.path.sep.join(newFile.split(os.path.sep)[1:])
+        newFile = os.path.join(baseDir, newFile)
+
+        fileDict.setdefault(newFile, [])
+    elif line.startswith('@@'):
+        curLine = int(line.split()[2].split(',')[0][1:])
+    elif line.startswith('+'):
+        fileDict[newFile].append(curLine)
+        curLine += 1
+    elif line.startswith('-'):
+        continue
+    elif newFile:
+        curLine += 1
+
+for file in sorted(fileDict):
+    print file
+    print ' '.join(str(x) for x in sorted(fileDict[file]))

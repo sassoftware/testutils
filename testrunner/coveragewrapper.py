@@ -116,8 +116,12 @@ def getEnviron():
     coveragePath = os.environ.get('COVERAGE_PATH', None)
     policyPath = os.environ.get('CONARY_POLICY_PATH', '/usr/lib/conary/policy')
     if not coveragePath:
-        print "Please set COVERAGE_PATH to the dir in which coverage.py is located"
-        sys.exit(1)
+        testutilsPath = os.environ.get('TESTUTILS_PATH')
+        if testutilsPath is None:
+            print "Please set COVERAGE_PATH to the dir in which coverage.py is located"
+            sys.exit(1)
+        coveragePath = os.path.join(testutilsPath, 'coverage')
+        os.environ['COVERAGE_PATH'] = coveragePath
     elif not policyPath:
         print "Please set CONARY_POLICY_PATH"
         sys.exit(1)
