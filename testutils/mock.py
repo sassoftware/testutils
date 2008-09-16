@@ -231,7 +231,10 @@ class MockManager(object):
         kw = tuple(sorted(kw.items()))
         if (args, kw) not in self.calls:
             expected = formatArguments(args, kw)
-            got = ', '.join(formatArguments(x[0], x[1]) for x in self.calls)
+            if self.calls:
+                got = ', '.join(formatArguments(x[0], x[1]) for x in self.calls)
+            else:
+                got = 'no calls'
             raise AssertionError("expected call arguments to be %s, got %s"
                 % (expected, got))
         self.calls.remove((args, kw))
@@ -342,7 +345,7 @@ def formatArguments(args, kwargs):
         fmt_args = ', '.join(repr(x) for x in args)
         out.append(fmt_args)
     if kwargs:
-        fmt_kwargs = ', '.join('%s=%r' % (x, y) for (x, y) in kwargs.items())
+        fmt_kwargs = ', '.join('%s=%r' % (x, y) for (x, y) in kwargs)
         out.append(fmt_kwargs)
     return '(' + (', '.join(out)) + ')'
 
