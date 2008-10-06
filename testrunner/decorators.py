@@ -1,3 +1,4 @@
+import os
 
 # Marker decorators
 def tests(*issues):
