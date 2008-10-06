@@ -1,4 +1,5 @@
 import os
+from testrunner.output import SkipTestException
 
 # Marker decorators
 def tests(*issues):
