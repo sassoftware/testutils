@@ -1,6 +1,5 @@
 import gc
 import errno
-import fcntl
 import gc
 import grp
 import itertools
@@ -11,7 +10,6 @@ import pprint
 import pwd
 import signal
 import socket
-import random
 import re
 import tempfile
 import types
@@ -25,50 +23,15 @@ from testcase import TestCase
 from testrunner.output import SkipTestException, DebugTestRunner
 
 from testrunner.testhandler import Loader
+from testutils import sock_utils
+
+# Every module uses findPorts from here
+findPorts = sock_utils.PortFinder.findPorts
 
 global _handler
 _handler = None
 global _conaryDir
 _conaryDir = None
-
-portstart = random.randrange(16000, 30000)
-# this blows
-if hasattr(os, '_urandomfd'):
-    fcntl.fcntl(os._urandomfd, fcntl.F_SETFD, 1)
-
-def findPorts(num = 1, failOnError=False, closeSockets=True):
-    global portstart
-    if portstart > 31500:
-        # Wrap around, hope for the best
-        portstart = random.randrange(16000, 30000)
-    ports = []
-    sockets = []
-    for port in xrange(portstart, portstart + 300):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            s.bind(('localhost', port))
-        except socket.error, e:
-            if e[0] != errno.EADDRINUSE:
-                raise
-        else:
-            if closeSockets:
-                s.close()
-            else:
-                sockets.append(s)
-            ports.append(port)
-            if len(ports) == num:
-                portstart = max(ports) + 1
-                if closeSockets:
-                    return ports
-                else:
-                    return zip(ports, sockets)
-
-    if failOnError:
-        raise socket.error, "Cannot find open port to run server on"
-    else:
-        portstart = random.randrange(16000, 30000)
-        return findPorts(num, failOnError=True)
 
 # gets a temporary directory that is made only of lowercase letters
 # for MySQL's benefit
