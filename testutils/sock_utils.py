@@ -79,6 +79,9 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None):
                 continue
             raise
     if logFile:
-        print 'logFile contents:\n%s' % open(logFile).read()
+        if os.path.exists(logFile):
+            print 'logFile contents:\n%s' % open(logFile).read()
+        else:
+            print 'log file is missing'
     # re-raise the last error
     raise
