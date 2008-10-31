@@ -40,7 +40,7 @@ class PythonModule(object):
         self.modulePath = modulePath
         self.shouldClone = shouldClone
 
-    def find(self, moduleDir):
+    def find(self, moduleDir, searchPath):
         """
         Find this location to load this module from it if it is on
         disk, using a hard-coded path if given, then looking at
@@ -54,6 +54,14 @@ class PythonModule(object):
             path = os.environ[self.environName]
             if os.path.exists(path):
                 return path
+        for path in searchPath:
+            modPath = '%s/%s' % (path, self.reposName)
+            if os.path.exists(modPath):
+                return os.path.realpath(modPath)
+            modPath = '%s/%s' % (path, os.path.basename(self.reposName))
+            if os.path.exists(modPath):
+                return os.path.realpath(modPath)
+
         for i in range(4):
             path = moduleDir + '/%s%s' % ('../' * i,
                                            os.path.basename(self.reposName))
@@ -87,7 +95,7 @@ class ModuleLoader(object):
     @param repositoryLocation: location of mercurial repositories
     """
     def __init__(self, moduleList, topDir, shouldClone=False,
-                 repositoryLocation=None):
+                 repositoryLocation=None, searchPath=None):
         moduleDir = os.path.realpath(topDir + '/supporting_modules')
         pythonPathDir = os.path.realpath(topDir + '/pythonpath')
         self.repositoryLocation = repositoryLocation
@@ -95,6 +103,9 @@ class ModuleLoader(object):
         self.pythonPathDir = pythonPathDir
         self.moduleList = moduleList
         self.shouldClone = shouldClone
+        if not searchPath:
+            searchPath = []
+        self.searchPath = searchPath
 
     def loadModules(self):
         if not os.path.exists(self.moduleDir):
@@ -111,7 +122,7 @@ class ModuleLoader(object):
             module.test()
 
     def loadModule(self, module):
-        path = module.find(self.moduleDir)
+        path = module.find(self.moduleDir, self.searchPath)
         if not path:
             if self.shouldClone and module.shouldClone:
                 path = self._clone(module, self.moduleDir)
@@ -175,13 +186,19 @@ def _link(source, target):
     os.symlink(source, target)
 
 
-def loadModules(moduleList, topDir='..', shouldClone=False):
+def loadModules(moduleList, topDir='..', shouldClone=False, searchPath=None):
     m = ModuleLoader(moduleList, topDir, shouldClone=shouldClone,
-                     repositoryLocation='http://scc.eng.rpath.com//hg/')
+                     repositoryLocation='http://scc.eng.rpath.com//hg/',
+                     searchPath=searchPath)
     try:
         m.loadModules()
         m.testModules()
+    except KeyboardInterrupt, e:
+        raise
     except Exception, e:
         import epdb
+        import traceback
+        traceback.print_exc()
         epdb.post_mortem(sys.exc_info()[2])
+        sys.exit(1)
     os.environ['PYTHONPATH'] = ':'.join(sys.path)
