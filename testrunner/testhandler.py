@@ -38,7 +38,11 @@ class Loader(unittest.TestLoader):
                 contexts = []
 
             # Filter testcases
-            if context in contexts:
+            if inverted and context in contexts:
+                # inverted mode: we're removing tests that match the context
+                tests._tests.remove(testCase)
+            elif not inverted and context not in contexts:
+                # normal mode: we're removing tests that don't match the context
                 tests._tests.remove(testCase)
 
     def loadTestsFromModule(self, module):
