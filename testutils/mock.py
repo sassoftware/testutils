@@ -60,6 +60,7 @@ parameters.
 
 import inspect
 import new
+import os.path
 import sys
 
 
@@ -155,6 +156,17 @@ class MockManager(object):
         self.superClass = object
         self.stableReturnValues = stableReturnValues
         self.returnValues = self.noReturnValue
+
+        # Store the line of code responsible for creating this mock
+        # object.
+        caller = sys._getframe(2)
+        while caller:
+            if os.path.basename(caller.f_code.co_filename) != 'mock.py':
+                self.origin = (caller.f_code.co_filename, caller.f_lineno)
+                break
+            caller = caller.f_back
+        else:
+            self.origin = (None, None)
 
     def enableByDefault(self):
         self._enabledByDefault = True
