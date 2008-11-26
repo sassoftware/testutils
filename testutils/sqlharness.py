@@ -14,6 +14,7 @@ import pwd
 
 from testrunner import testhelp
 from testrunner import resources
+from testutils.base_server import BaseServer
 
 from conary.lib import util
 from conary import dbstore
@@ -127,7 +128,7 @@ class RepositoryDatabase:
 ########################
 # SQL SERVERS HANDLERS
 ########################
-class BaseSQLServer(object):
+class BaseSQLServer(BaseServer):
     driver = "unspecified"
     verbose = 0
     def __init__(self, path, dbClass = RepositoryDatabase):
@@ -153,10 +154,6 @@ class BaseSQLServer(object):
         if self.verbose:
             print "\nSTOP SQL HARNESS", self.driver, self.path
 
-    def __del__(self):
-        self.stop()
-        self.path = None
-        
 
 class SqliteServer(BaseSQLServer):
     driver = "sqlite"
@@ -182,6 +179,9 @@ class SqliteServer(BaseSQLServer):
         dbPath = os.path.join(self.path, name)
         if os.path.exists(dbPath):
             os.unlink(dbPath)
+
+    def isStarted(self):
+        return self.path is not None
 
     def stop(self):
         BaseSQLServer.stop(self)
@@ -233,6 +233,9 @@ class SQLServer(BaseSQLServer):
     def start(self):
         self._initPath()
         self._start()
+
+    def isStarted(self):
+        return self.sqlPid is not None
         
     def stop(self):
         if self.sqlPid == None:
