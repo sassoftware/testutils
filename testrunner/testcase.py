@@ -210,9 +210,22 @@ class TestCase(unittest.TestCase):
         if fdCount != len(self.openFds):
             self.openFds = self._openFdSet()
 
+        prePid = os.getpid()
+
         try:
             unittest.TestCase.run(self, *args, **kw)
         finally:
+            # Make sure some test didn't accidentally fork the
+            # testsuite.
+            postPid = os.getpid()
+            if prePid != postPid:
+                sys.stderr.write("\n*** CHILD RE-ENTERED TESTSUITE ***\n")
+                sys.stderr.write("A forked process was allowed to return to "
+                    "the testsuite handler, probably due\nto an exception. "
+                    "Find it and kill it!\n")
+                sys.stderr.write("PID was: %d  now: %d\n" % (prePid, postPid))
+                os._exit(2)
+
             self.unmock()
             # ask gc to run to see if we can avoid "leaked -1 file descriptors"
             gc.collect()
@@ -230,8 +243,6 @@ class TestCase(unittest.TestCase):
                     if contents and ((fd, contents) not in self.openFds):
                         print '%s: %s' % (fd, contents)
                 self.openFds = newOpenFds
-
-
 
     def writeFile(self, path, contents, mode = None):
         if os.path.exists(path):
