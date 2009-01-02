@@ -262,7 +262,7 @@ class _TestSuiteHandler(object):
 
     def sortTests(self, tests):
         if self.sortTestFn:
-            return self.sortTestFn(tets)
+            return self.sortTestFn(tests)
         return tests
 
     def runTests(self, options, args):
