@@ -20,8 +20,10 @@ class Loader(unittest.TestLoader):
 
         # Check each test method for contexts.
         for testCase in tests._tests[:]:
-            method = getattr(testCase,
-                testCase._TestCase__testMethodName, None)
+            # python 2.6 renamed the field to _testMethodName
+            testMethodName = getattr(testCase, '_testMethodName', None) or \
+                getattr(testCase, '_TestCase__testMethodName')
+            method = getattr(testCase, testMethodName, None)
 
             if method:
                 contexts = getattr(method, '_contexts', [])
@@ -330,9 +332,11 @@ class _TestSuiteHandler(object):
                 print 'Failed tests:'
                 for test, tb in itertools.chain(results.errors,
                                                 results.failures):
-                    name = test._TestCase__testMethodName
+                    # python 2.6 renamed the field to _testMethodName
+                    testMethodName = getattr(test, '_testMethodName', None) or \
+                        getattr(test, '_TestCase__testMethodName')
                     print '%s.%s.%s' % (test.__class__.__module__,
-                                        test.__class__.__name__, name)
+                                        test.__class__.__name__, testMethodName)
 
             if options.stat_file:
                 outputStats(results, open(statFile, 'w'))
