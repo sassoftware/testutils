@@ -185,6 +185,12 @@ class ConaryTestSuite(unittest.TestSuite):
                 import rephelp
                 rephelp._cleanUp()
 
+class TestProgram(unittest.TestProgram):
+    def runTests(self):
+        if self.testRunner is None:
+            self.testRunner = TextTestRunner(verbosity=self.verbosity)
+        self.results = self.testRunner.run(self.test)
+        return self.results
 
 
 class _TestSuiteHandler(object):
@@ -308,8 +314,9 @@ class _TestSuiteHandler(object):
                                 oneLine=not (options.verbose or options.dots),
                                 stream=stream, xml_stream=xml_stream)
         if self.isIndividual():
-            results = unittest.main(testRunner=runner, testLoader=loader, 
-                                    argv=[sys.argv[0]] + args)
+            program = TestProgram(testRunner=runner, testLoader=loader, 
+                                 argv=[sys.argv[0]] + args)
+            results = program.results
         else:
             tests = self._getTestsToRun(args)
             tests = self.sortTests(tests)
@@ -328,18 +335,24 @@ class _TestSuiteHandler(object):
                 return
 
             results = runner.run(suite)
-            if results.erroredTests or results.failedTests:
-                print 'Failed tests:'
-                for test, tb in itertools.chain(results.errors,
-                                                results.failures):
-                    # python 2.6 renamed the field to _testMethodName
-                    testMethodName = getattr(test, '_testMethodName', None) or \
+        if results.erroredTests or results.failedTests:
+            print 'Failed tests:'
+            for test, tb in itertools.chain(results.errors,
+                                            results.failures):
+                # python 2.6 renamed the field to _testMethodName
+                testMethodName = getattr(test, '_testMethodName', None) or \
                         getattr(test, '_TestCase__testMethodName')
-                    print '%s.%s.%s' % (test.__class__.__module__,
-                                        test.__class__.__name__, testMethodName)
+                module =  test.__class__.__module__ 
+                if module == '__main__':
+                    module = ''
+                else:
+                    module += '.'
 
-            if options.stat_file:
-                outputStats(results, open(statFile, 'w'))
+                print '%s%s.%s' % (module, test.__class__.__name__, testMethodName)
+  
+
+        if options.stat_file:
+            outputStats(results, open(statFile, 'w'))
 
         if options.profile:
             prof.stop()
