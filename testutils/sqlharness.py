@@ -358,7 +358,11 @@ long_query_time=1
             _pid, _dbName = (proc[0], proc[3])
             if _dbName != name:
                 continue
-            cu.execute("kill %d" % _pid)
+            try:
+                cu.execute("kill %d" % _pid)
+            except sqlerrors.DatabaseError:
+                # Gone.
+                pass
         # mysql is nice enough that a single kill will suffice
         return 0
     
