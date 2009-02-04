@@ -308,6 +308,11 @@ class _TestSuiteHandler(object):
                 sys.exit(1)
             xml_stream['prefix'] = options.xml_prefix
 
+        if options.rerun_failed:
+            if os.path.exists('.failed'):
+                args += [ x for x in open('.failed').read().split('\n') if x]
+            else:
+                raise RuntimeError('Could not find .failed file from previous failing run')
         runner = output.DebugTestRunner(
                                 debug=options.debug,
                                 useCallback=not options.dots,
@@ -336,6 +341,7 @@ class _TestSuiteHandler(object):
 
             results = runner.run(suite)
         if results.erroredTests or results.failedTests:
+            failedTests = open('.failed', 'w')
             print 'Failed tests:'
             for test, tb in itertools.chain(results.errors,
                                             results.failures):
@@ -348,9 +354,11 @@ class _TestSuiteHandler(object):
                 else:
                     module += '.'
 
-                print '%s%s.%s' % (module, test.__class__.__name__, testMethodName)
+                testName =  '%s%s.%s' % (module, test.__class__.__name__, testMethodName)
+                print testName
+                failedTests.write(testName + '\n')
+            print '(Rerun w/ --rerun-failed to rerun only failed tests)'
   
-
         if options.stat_file:
             outputStats(results, open(statFile, 'w'))
 
@@ -375,6 +383,9 @@ class _TestSuiteHandler(object):
         parser.add_option('--context', action='store', dest='context',
                           help='limit tests to tests in context CONTEXT',
                           metavar='CONTEXT')
+        parser.add_option('--rerun-failed', action='store_true', 
+                          dest='rerun_failed',
+                          help='rerun those tests that failed')
         parser.add_option('--no-report', action='store_false', dest='report',
                           default=True,
                           help='Do not generate report after running coverage')
