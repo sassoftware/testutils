@@ -12,8 +12,8 @@
 # full details.
 #
 
-PYTHON = $(shell [ -x /usr/bin/python2.4 ] && echo /usr/bin/python2.4)
-PYVERSION = $(shell $(PYTHON) -c 'import os, sys; print sys.version[:3]')
+PYVERSION=$(shell python -c 'import sys; print sys.version[:3]')
+PYTHON = /usr/bin/python${PYVERSION}
 PYINCLUDE = $(shell $(PYTHON) -c 'import os, sys; print os.sep.join((sys.prefix, "include", "python" + sys.version[:3]))')
 
 pyfiles-install:
