@@ -6,7 +6,7 @@ import re
 import sys
 import time
 import traceback
-import types
+import inspect
 import unittest
 
 class TestTimer(object):
@@ -273,10 +273,11 @@ class SkipTestTextResult(unittest._TextTestResult, SkipTestResultMixin):
             className = self.xml_stream['prefix'] + '.' + className
 
         if err:
-            if type(err[0]) == types.ClassType:
-                exceptionName = err[0].__name__
+            ferr = err[0]
+            if inspect.isclass(ferr):
+                exceptionName = ferr.__name__
             else:
-                exceptionName = err[0]
+                exceptionName = ferr
         else:
             exceptionName = ''
 
