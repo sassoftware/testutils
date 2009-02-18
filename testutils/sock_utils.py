@@ -31,7 +31,6 @@ class PortFinder(object):
         of port numbers. If C{False}, returns a list of C{(port, socket)}
         tuples.
         """
-        print 'Finding %d ports' % num # XXX
         ports = []
         sockets = []
         while len(ports) < num:
@@ -50,7 +49,6 @@ class PortFinder(object):
                     raise
                 # Collision - reseed so we get as far away from the
                 # other process as possible.
-                print 'collision!' # XXX
                 self.reseed()
                 time.sleep(random.uniform(0.1, 0.7))
                 continue
