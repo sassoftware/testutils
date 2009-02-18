@@ -139,7 +139,7 @@ class ApacheServer(base_server.BaseServer):
 class ApacheSSLMixin(object):
     # Assumes inheritance from ApacheServer, plus self.sslCert, self.sslKey
     def initPort(self):
-        self.port, self.plainPort = sock_utils.PortFinder.findPorts(num = 2)
+        self.port, self.plainPort = sock_utils.findPorts(num = 2)
 
     def createConfig(self):
         shutil.copy(self.sslCert, os.path.join(self.serverRoot, "server.crt"))

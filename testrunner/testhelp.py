@@ -26,7 +26,7 @@ from testrunner.testhandler import Loader
 from testutils import sock_utils
 
 # Every module uses findPorts from here
-findPorts = sock_utils.PortFinder.findPorts
+findPorts = sock_utils.findPorts
 
 global _handler
 _handler = None
