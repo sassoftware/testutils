@@ -89,7 +89,7 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None):
             sock.close()
             return
         except socket.error, error:
-            if error.errno == errno.ECONNREFUSED:
+            if hasattr(error, 'errno') and error.errno == errno.ECONNREFUSED:
                 time.sleep(interval)
                 continue
             raise
