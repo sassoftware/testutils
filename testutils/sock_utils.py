@@ -46,7 +46,7 @@ class PortFinder(object):
                 # port isn't in use with TCPv4 or TCPv6 on any interface.
                 sock.bind(('::', self._port))
             except socket.error, error:
-                if error.errno != errno.EADDRINUSE:
+                if error.args[0] != errno.EADDRINUSE:
                     raise
                 # Collision - reseed so we get as far away from the
                 # other process as possible.
@@ -89,7 +89,7 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None):
             sock.close()
             return
         except socket.error, error:
-            if hasattr(error, 'errno') and error.errno == errno.ECONNREFUSED:
+            if error.args[0] == errno.ECONNREFUSED:
                 time.sleep(interval)
                 continue
             raise
