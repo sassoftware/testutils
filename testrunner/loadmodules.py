@@ -24,7 +24,7 @@ class PythonModule(object):
     def __init__(self, moduleName,  environName=None,
                  test=None, modulePath = None,
                  shouldClone=True, reposName=None,
-                 setup=None):
+                 setup=None, pythonPath=None):
         self.moduleName = moduleName
         if reposName is None:
             reposName = moduleName
@@ -39,6 +39,7 @@ class PythonModule(object):
         self.testString = test
         self.modulePath = modulePath
         self.shouldClone = shouldClone
+        self.pythonPath = pythonPath
 
     def find(self, moduleDir, searchPath):
         """
@@ -146,20 +147,24 @@ class ModuleLoader(object):
         pythonPath = self.pythonPathDir
         pythonFiles = []
         subdirs = []
-        for file in os.listdir(modulePath):
-            if file.endswith('.py') and file not in ['cotton.py', 'setup.py']:
-                pythonFiles.append(file)
-                break
-            subDirPath = '%s/%s' % (modulePath, file)
-            if os.path.exists('%s/__init__.py' % subDirPath):
-                subdirs.append(file)
+        if module.pythonPath:
+            subdirs = [module.pythonPath]
+        else:
+            for file in os.listdir(modulePath):
+                if file.endswith('.py') and file not in ['cotton.py', 'setup.py']:
+                    pythonFiles.append(file)
+                    break
+                subDirPath = '%s/%s' % (modulePath, file)
+                if os.path.exists('%s/__init__.py' % subDirPath):
+                    subdirs.append(file)
         if pythonFiles:
             sys.path.insert(0, modulePath)
-        else:
-            for subdir in subdirs:
-                pythonPathSubDir = '%s/%s' % (pythonPath, subdir)
-                subDirPath = '%s/%s' % (modulePath, subdir)
-                _link(subDirPath, pythonPathSubDir)
+            return
+        for subdir in subdirs:
+            pythonPathSubDir = '%s/%s' % (pythonPath, 
+                                         os.path.basename(subdir))
+            subDirPath = '%s/%s' % (modulePath, subdir)
+            _link(subDirPath, pythonPathSubDir)
 
     def _clone(self, module, targetDir):
         print 'Cloning %s to %s (set %s to use existing version)...' % (module.moduleName, targetDir, module.environName)
