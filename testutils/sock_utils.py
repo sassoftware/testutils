@@ -71,7 +71,7 @@ class PortFinder(object):
 _portFinder = PortFinder()
 
 
-def findPorts(num, closeSockets=True):
+def findPorts(num=1, closeSockets=True):
     return _portFinder.findPorts(num, closeSockets=closeSockets)
 
 
