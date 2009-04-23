@@ -1,4 +1,5 @@
 import fcntl
+import inspect
 import itertools
 import os
 import signal
@@ -116,8 +117,27 @@ class Loader(unittest.TestLoader):
                         obj = getattr(obj, part)
                         found.append(part)
                 except AttributeError:
-                    raise AttributeError("Module or class %s has no "
-                        "attribute '%s'" % ('.'.join(found), part))
+                    print >> sys.stderr, "%s has no attribute %s" % (
+                            '.'.join(found), part)
+                    sys.stderr.flush()
+
+                    interesting = (lambda x:
+                            inspect.ismodule(x)
+                            or inspect.isclass(x)
+                            or inspect.isfunction(x))
+
+                    if not interesting(obj):
+                        sys.exit(3)
+
+                    print >> sys.stderr, "Attributes:"
+                    for name, sub in sorted(obj.__dict__.items()):
+                        if name.startswith('_'):
+                            continue
+                        if not interesting(sub):
+                            continue
+                        print >> sys.stderr, name
+                    sys.stderr.flush()
+                    sys.exit(3)
 
                 return module, testName
 
