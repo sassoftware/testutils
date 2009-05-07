@@ -55,6 +55,8 @@ class CoverageWrapper(object):
         coverage = coverage.the_coverage
         coverage.cacheDir = self._dataPath
         coverage.get_ready(restoreDir=True)
+        coverage.exclude('#pragma[: ]+[nN][oO] [cC][oO][vV][eE][rR]')
+
         return coverage
 
     def compress(self):
