@@ -35,20 +35,22 @@ _conaryDir = None
 
 # gets a temporary directory that is made only of lowercase letters
 # for MySQL's benefit
-def getTempDir(prefix):
+def getTempDir(prefix, dir=None):
     while True:
-        d = tempfile.mkdtemp(prefix=prefix)
-        os.rmdir(d)
-        dl = d.lower()
+        oldPath = tempfile.mkdtemp(prefix=prefix, dir=dir)
+        oldDir, oldName = os.path.split(oldPath)
+        newName = oldName.lower()
+        newPath = os.path.join(oldDir, newName)
         try:
-            os.mkdir(dl, 0700)
-        except OSError, e:
-            if e.errno == errno.EEXIST:
-                continue # try again
+            os.rename(oldPath, newPath)
+        except OSError, err:
+            if err.args[0] == errno.EEXIST:
+                # try again
+                os.rmdir(oldPath)
+                continue
+            raise
         else:
-            os.rmdir(d)
-            break
-    return dl
+            return newPath
 
 def getPath(envName, default=None):
     if envName in os.environ:
