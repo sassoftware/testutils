@@ -38,6 +38,7 @@ _conaryDir = None
 def getTempDir(prefix):
     while True:
         d = tempfile.mkdtemp(prefix=prefix)
+        os.rmdir(d)
         dl = d.lower()
         try:
             os.mkdir(dl, 0700)
