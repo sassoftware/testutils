@@ -25,6 +25,7 @@ class ApacheServer(base_server.BaseServer):
             self.initPort()
         self.createConfig()
         self.semaphores = None
+        self._serverFileName = self._getServerFileName()
 
     def getServerDir(self):
         raise NotImplementedError
@@ -39,8 +40,10 @@ class ApacheServer(base_server.BaseServer):
         raise NotImplementedError
 
     def createConfig(self):
+        paths = [ '/usr/lib64/httpd/modules', '/usr/lib/apache2',
+                  '/usr/lib/httpd/modules', '/usr/lib64/apache2', ]
         os.makedirs(self.serverRoot + "/tmp")
-        for path in ('/usr/lib64/httpd/modules', '/usr/lib/httpd/modules'):
+        for path in paths:
             if os.path.isdir(path):
                 os.symlink(path, self.serverRoot + "/modules")
                 break
@@ -65,6 +68,12 @@ class ApacheServer(base_server.BaseServer):
         self._reset()
         base_server.BaseServer.reset(self)
 
+    def _getServerFileName(self):
+        for fname in [ '/usr/sbin/httpd', '/usr/sbin/httpd2' ]:
+            if os.path.exists(fname):
+                return fname
+        raise Exception("Unable to find apache executable")
+
     def start(self, resetDir = True):
         self._startAppSpecificTasks(resetDir = resetDir)
         if self.serverpid != -1:
@@ -78,7 +87,7 @@ class ApacheServer(base_server.BaseServer):
         if self.serverpid == 0:
             os.chdir('/')
             #print "starting server in %s" % self.serverRoot
-            args = ("/usr/sbin/httpd",
+            args = (self._serverFileName,
                     "-X",
                     "-d", self.serverRoot,
                     "-f", "httpd.conf",
@@ -102,7 +111,7 @@ class ApacheServer(base_server.BaseServer):
 
     def stop(self):
         if self.serverpid != -1:
-            args = ("/usr/sbin/httpd",
+            args = (self._serverFileName,
                     "-d", self.serverRoot,
                     "-f", "httpd.conf",
                     "-k", "stop",)
