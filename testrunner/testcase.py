@@ -118,8 +118,7 @@ class LogFilter:
 
 
 class TestCase(unittest.TestCase):
-    # Set the timezone to something consistent
-    os.environ['TZ'] = 'Pacific/Fiji'
+    TIMEZONE = 'Pacific/Fiji'
 
     def __init__(self, methodName):
 	unittest.TestCase.__init__(self, methodName)
@@ -132,6 +131,9 @@ class TestCase(unittest.TestCase):
         self.conaryDir = resources.conaryDir
         self.mockObjects = []
         self.openFds = set()
+
+        # Set the timezone to something consistent
+        os.environ['TZ'] = self.TIMEZONE
 
     def setUp(self):
         from conary.lib import log
