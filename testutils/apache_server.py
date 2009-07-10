@@ -69,7 +69,8 @@ class ApacheServer(base_server.BaseServer):
         base_server.BaseServer.reset(self)
 
     def _getServerFileName(self):
-        for fname in [ '/usr/sbin/httpd', '/usr/sbin/httpd2' ]:
+        for fname in [ '/usr/sbin/httpd', '/usr/sbin/httpd2',
+                       '/usr/sbin/httpd2-prefork' ]:
             if os.path.exists(fname):
                 return fname
         raise Exception("Unable to find apache executable")
