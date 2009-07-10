@@ -133,7 +133,8 @@ class TestCase(unittest.TestCase):
         self.openFds = set()
 
         # Set the timezone to something consistent
-        import time; time.tzset(self.TIMEZONE)
+        os.environ['TZ'] = self.TIMEZONE
+        import time; time.tzset()
 
     def setUp(self):
         from conary.lib import log
