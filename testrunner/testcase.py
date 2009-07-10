@@ -118,6 +118,8 @@ class LogFilter:
 
 
 class TestCase(unittest.TestCase):
+    # Set the timezone to something consistent
+    os.environ['TZ'] = 'Pacific/Fiji'
 
     def __init__(self, methodName):
 	unittest.TestCase.__init__(self, methodName)
