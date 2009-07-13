@@ -132,13 +132,20 @@ class TestCase(unittest.TestCase):
         self.mockObjects = []
         self.openFds = set()
 
-        # Set the timezone to something consistent
-        os.environ['TZ'] = self.TIMEZONE
-        import time; time.tzset()
-
     def setUp(self):
         from conary.lib import log
         self._logLevel = log.getVerbosity()
+
+        # Set the timezone to something consistent
+        os.environ['TZ'] = self.TIMEZONE
+        import time; time.tzset()
+        import _strptime
+        # Reset strptime's internal cache too
+        try:
+            _strptime._cache_lock.acquire()
+            _strptime._TimeRE_cache.__init__(_strptime.LocaleTime())
+        finally:
+            _strptime._cache_lock.release()
 
     def tearDown(self):
         from conary.lib import log
