@@ -17,6 +17,7 @@ import unittest
 
 from testrunner.decorators import context
 from testrunner import testhandler
+
 ConaryTestSuite = testhandler.ConaryTestSuite
 
 from testcase import TestCase
@@ -52,29 +53,6 @@ def getTempDir(prefix, dir=None):
         else:
             return newPath
 
-def getPath(envName, default=None):
-    if envName in os.environ:
-        return os.path.realpath(os.environ[envName])
-    elif default is None:
-        print "please set %s" % envName
-        sys.exit(1)
-    else:
-        os.environ[envName] = default
-        return default
-
-def insertPath(path, updatePythonPath=False):
-    if path not in sys.path:
-        sys.path.insert(0, path)
-    if 'PYTHONPATH' in os.environ:
-        os.environ['PYTHONPATH'] = os.pathsep.join((path,
-                                                   os.environ['PYTHONPATH']))
-    else:
-        os.environ['PYTHONPATH'] = path
-
-def getConaryDir():
-    global _conaryDir
-    return _conaryDir
-
 def getTestPath(testsuiteModule = None):
     # By default, use the standard setup
     if testsuiteModule is None:
@@ -95,15 +73,6 @@ def getTestPath(testsuiteModule = None):
         testPath = os.path.join(testPath, 
                         os.path.dirname(sys.modules[testsuiteModule].__file__))
     return testPath
-
-def getArchivePath(testDir):
-    for path in (testDir, os.path.dirname(__file__)):
-        path_maybe = os.path.join(path, 'archive')
-        if os.path.isdir(path_maybe):
-            return path_maybe
-
-    return None
-
 
 # backwards compatible code
 def getHandlerClass(suiteClass_, getCoverageDirsFn, getExcludeDirsFn=None,
@@ -126,24 +95,18 @@ def getHandlerClass(suiteClass_, getCoverageDirsFn, getExcludeDirsFn=None,
     return GeneratedHandlerClass
 
 
-# Backwards compatible testsuite handler.  We should get rid of this.
-from testrunner import testhandler
 class TestSuiteHandler(testhandler.TestSuiteHandler):
 
     suiteClass = unittest.TestSuite
 
     def __init__(self, individual, topdir, conaryDir, testPath):
         global _handler
-        global _conaryDir
         _handler = self
-        _conaryDir = conaryDir
         from testrunner import resources
         cfg = resources.cfg
         cfg.isIndividual = individual
         cfg.cleanTestDirs = not individual
-        resources.testPath = testPath
-        resources.conaryDir = conaryDir
-        testhandler.TestSuiteHandler.__init__(self, cfg, resources, None, self.suiteClass)
+        testhandler.TestSuiteHandler.__init__(self, cfg, None, self.suiteClass)
 
     def getCoverageExclusions(self, environ):
         return []

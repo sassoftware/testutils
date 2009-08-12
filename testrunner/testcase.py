@@ -125,10 +125,8 @@ class TestCase(unittest.TestCase):
         self.logFilter = LogFilter()
         self.owner = pwd.getpwuid(os.getuid())[0]
         self.group = grp.getgrgid(os.getgid())[0]
-        from testrunner import resources
-        self.resources = resources
 
-        self.conaryDir = resources.conaryDir
+        import testrunner.pathManager
         self.mockObjects = []
         self.openFds = set()
 

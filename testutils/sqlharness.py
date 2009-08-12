@@ -13,8 +13,8 @@ import sys
 import pwd
 
 from testrunner import testhelp
-from testrunner import resources
 from testutils.base_server import BaseServer
+from testrunner import resources
 
 from conary.lib import util
 from conary import dbstore

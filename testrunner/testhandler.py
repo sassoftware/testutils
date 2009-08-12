@@ -9,6 +9,8 @@ import unittest
 
 from testrunner import coveragewrapper
 from testrunner import output
+from testrunner import pathManager
+
 
 class Loader(unittest.TestLoader):
 
@@ -212,13 +214,11 @@ class TestProgram(unittest.TestProgram):
         self.results = self.testRunner.run(self.test)
         return self.results
 
-
 class _TestSuiteHandler(object):
 
-    def __init__(self, cfg, resources, sortTestFn=None,
+    def __init__(self, cfg, sortTestFn=None,
                  suiteClass = ConaryTestSuite):
         self.cfg = cfg
-        self.resources = resources
         self.suiteClass = suiteClass
         self.sortTestFn = sortTestFn
 
@@ -234,7 +234,7 @@ class _TestSuiteHandler(object):
           (results.erroredTests + results.failedTests)))
 
     def _getTestsToRun(self, argList=[]):
-        topdir = os.path.realpath(self.resources.testPath)
+        topdir = os.path.realpath(pathManager.getPath('TEST_PATH'))
         tests = []
         cwd = os.getcwd()
         argsUsedAsFilter = set()
@@ -484,7 +484,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
             raise RuntimeError, 'no such file(s): %s' % ' '.join(notExists)
 
         cw = coveragewrapper.CoverageWrapper(environ['coverage'],
-                                             self.resources.testPath + '/.coverage',
+                                             pathManager.getPath('TEST_PATH') + '/.coverage',
                                              os.getcwd() + '/annotate',
                                              baseDirs)
         if not options.resume:
