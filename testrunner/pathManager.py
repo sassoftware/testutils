@@ -9,62 +9,149 @@ import sys
 import stat
 # Search order:
 # 1. absolute path
-# 2. one dir up from the current repo (i.e. the same forest or parallel repo) 
-# 3. If $RPATH_USE_SYSTEM_MODULES is set we search the existing system path
-# 4. Start at $RPATH_DEV_REPO and look down assuming a directory structure like 
+# 2. one dir up from the current repo (i.e. the same forest or parallel repo)
+# 3. Start at $RPATH_DEV_REPO and look down assuming a directory structure like
 #     the Hg repo and prefering trunk to versioned checkouts
- 
-discoveryDefaults = { 'CONARY_POLICY_PATH':{'absPath':'/usr/lib/conary/policy'},
-                      'CONARY_PATH':{'provides':'conary', 'path':'products/conary/$VERSION/conary'},
-                      'CONARY_TEST_PATH':{'provides' : 'conarytest', 'path':'products/conary/$VERSION/conary-test'},
-                      'CATALOG_SERVICE_PATH':
-                          {'provides':'catalogService', 'path':'products/rbuilder/$VERSION/catalog-service'}, 
-                      'CATALOG_SERVICE_TEST_PATH':
-                          {'provides':'catalogService_test', 'path':'products/rbuilder/$VERSION/catalog-service-private'}, 
-                      'XMLLIB_PATH':{'provides':'rpath-xmllib.xmllib', 'path':'products/rbuilder/$VERSION/rpath-xmllib'},
-                      'XMLLIB_TEST_PATH':{'provides':'xmllib_test.xmllibtest', 'path':'products/rbuilder/$VERSION/rpath-xmllib-private'},
-                      'STORAGE_PATH':{'provides':'rpath-storage.storage', 
-                                      'path':'products/rbuilder/$VERSION/rpath-storage'},
-                      'STORAGE_TEST_PATH':{'provides':'storage_test', 
-                                      'path':'products/rbuilder/$VERSION/rpath-storage-private'},
-                      'PRODUCT_DEFINITION_PATH': {'provides':'rpath-proddef.proddef', 
-                                                  'path':'products/rbuilder/$VERSION/rpath-product-definition'},
-                      'PRODUCT_DEFINITION_TEST_PATH': {'provides':'proddef_test', 
-                                                       'path':'products/rbuilder/$VERSION/rpath-product-definition-private' },
-                      'RESTLIB_PATH':{'provides':'restlib', 'path':'products/rbuilder/$VERSION/restlib'},
-                      'RESTLIB_TEST_PATH':{'provides':'restlib_test', 'path':'products/rbuilder/$VERSION/restlib-private'},
-                      'COMMON_PATH':{'provides':'rpath-common', 'path':'products/rbuilder/$VERSION/rpath-common'},
-                      'XOBJ_PATH':{'provides':'xobj', 'path':'products/rbuilder/$VERSION/xobj/py'},
-                      'XOBJ_TEST_PATH':{'provides':'xobjtest', 'path':'products/rbuilder/$VERSION/xobj/py/test'},
-                      'BOTO_PATH':{'provides':'boto', 'path':'products/boto/$VERSION/boto'},
-                      'RMAKE_PATH':{'provides':'rmake', 'path':'products/rmake/$VERSION/rmake'},
-                      'RMAKE_TEST_PATH':{'provides':'rmake_test', 'path':'products/rmake/$VERSION/rmake-private'},
-                      'MINT_PATH':{'provides':'mint', 'path':'products/rbuilder/$VERSION/mint'},
-                      'MINT_TEST_PATH':{'provides':'mint_test', 'path':'products/rbuilder/$VERSION/mint/mint_test'},
-                      'MINT_RAA_PLUGINS_PATH':{'provides':'rPath', 'path':'products/rbuilder/$VERSION/mint/raaplugins'},
-                      'CREST_PATH':{'provides':'crest','path':'products/rbuilder/$VERSION/crest'},
-                      'CREST_TEST_PATH':{'provides':'crest','path':'products/rbuilder/$VERSION/crest-test'},
-                      'MCP_PATH':{'provides':'mcp', 'path':'products/rbuilder/$VERSION/mcp'},
-                      'MCP_TEST_PATH':{'provides':'mcp_test', 'path':'products/rbuilder/$VERSION/mcp'},
-                      'PACKAGE_CREATOR_SERVICE_PATH':{'provides':'preator', 'path':'products/rbuilder/$VERSION/pcreator'},
-                      'PACKAGE_CREATOR_SERVICE_TEST_PATH':
-                          {'provides':'factory_test', 'path':'products/rbuilder/$VERSION/pcreator-test'},
-                      'RBUILD_PATH':{'provides':'rbuild', 'path':'products/rbuild/$VERSION/rbuild'},
-                      'RBUILD_TEST_PATH':{'provides':'rbuild_test', 'path':'products/rbuild/$VERSION/rbuild-private'},
-                      'STOMP_PATH':{'provides':'stomp', 'path':'products/rbuilder/$VERSION/stomp.py'},
-                      'PYOVF_PATH':{'provides':'pyovf', 'path':'products/rbuilder/$VERSION/pyovf'},
-                      'PYOVF_TEST_PATH':{'provides':'functionaltests', 'path':'products/rbuilder/$VERSION/pyovf/test'},
-                      'JOB_MASTER_PATH':{'provides':'jobmaster', 'path':'products/rbuilder/$VERSION/jobmaster'},
-                      'JOB_MASTER_TEST_PATH':{'provides':'jobmaster_helper', 'path':'products/rbuilder/$VERSION/jobmaster/test'},
-                      'JOB_SLAVE_PATH':{'provides':'jobslave', 'path':'products/rbuilder/$VERSION/jobslave'},
-                      'JOB_SLAVE_TEST_PATH':{'provides':'jobslave_helper', 'path':'products/rbuilder/$VERSION/jobslave/test'},
-                      'RAA_PATH':{'provides':'raa', 'path':'products/raa/$VERSION/raa'},
-                      'RAA_TEST_PATH':{'provides':'raatest', 'path':'products/raa/$VERSION/raa-test'},
-                      'RAA_PLUGINS_PATH':{'provides':'raaplugins', 'path':'products/raa/$VERSION/raa/raaplugins'},
-                      'RBM_PATH':{'provides':'rbm_rc', 'path':'products/rbm/$VERSION/rbm/src'},
-                      'RBM_TEST_PATH':{'provides':'test', 'path':'products/rbm/$VERSION/rbm'},
-                      'RBM_RAA_PLUGINS_PATH':{'provides':'rPath', 'path':'products/rbuilder/$VERSION/rbm/raaplugins'},
-                      }
+# 4. If $RPATH_USE_SYSTEM_MODULES is set we search the existing system path
+
+discoveryDefaults = {
+        # Conary, etc.
+        'CONARY_POLICY_PATH': {
+            'absPath':'/usr/lib/conary/policy'},
+        'CONARY_PATH': {
+            'provides':'conary',
+            'path':'products/conary/$VERSION/conary'},
+        'CONARY_TEST_PATH': {
+            'provides':'conarytest',
+            'path':'products/conary/$VERSION/conary-test'},
+        'CREST_PATH': {
+            'provides':'crest',
+            'path':'products/rbuilder/$VERSION/crest'},
+        'CREST_TEST_PATH': {
+            'provides':'crest',
+            'path':'products/rbuilder/$VERSION/crest-test'},
+        'RBUILD_PATH': {
+            'provides':'rbuild',
+            'path':'products/rbuild/$VERSION/rbuild'},
+        'RBUILD_TEST_PATH': {
+            'provides':'rbuild_test',
+            'path':'products/rbuild/$VERSION/rbuild-private'},
+        'RMAKE_PATH': {
+            'provides':'rmake',
+            'path':'products/rmake/$VERSION/rmake'},
+        'RMAKE_TEST_PATH': {
+            'provides':'rmake_test',
+            'path':'products/rmake/$VERSION/rmake-private'},
+
+        # rBuilder
+        'CATALOG_SERVICE_PATH': {
+            'provides':'catalogService',
+            'path':'products/rbuilder/$VERSION/catalog-service'},
+        'CATALOG_SERVICE_TEST_PATH': {
+            'provides':'catalogService_test',
+            'path':'products/rbuilder/$VERSION/catalog-service-private'},
+        'JOB_MASTER_PATH': {
+            'provides':'jobmaster',
+            'path':'products/rbuilder/$VERSION/jobmaster'},
+        'JOB_MASTER_TEST_PATH': {
+            'provides':'jobmaster_helper',
+            'path':'products/rbuilder/$VERSION/jobmaster/test'},
+        'JOB_SLAVE_PATH': {
+            'provides':'jobslave',
+            'path':'products/rbuilder/$VERSION/jobslave'},
+        'JOB_SLAVE_TEST_PATH': {
+            'provides':'jobslave_helper',
+            'path':'products/rbuilder/$VERSION/jobslave/test'},
+        'MCP_PATH': {
+            'provides':'mcp',
+            'path':'products/rbuilder/$VERSION/mcp'},
+        'MCP_TEST_PATH': {
+            'provides':'mcp_test',
+            'path':'products/rbuilder/$VERSION/mcp'},
+        'MINT_PATH': {
+            'provides':'mint',
+            'path':'products/rbuilder/$VERSION/mint'},
+        'MINT_TEST_PATH': {
+            'provides':'mint_test',
+            'path':'products/rbuilder/$VERSION/mint/mint_test'},
+        'MINT_RAA_PLUGINS_PATH': {
+            'provides':'rPath',
+            'path':'products/rbuilder/$VERSION/mint/raaplugins'},
+        'PACKAGE_CREATOR_SERVICE_PATH': {
+            'provides':'preator',
+            'path':'products/rbuilder/$VERSION/pcreator'},
+        'PACKAGE_CREATOR_SERVICE_TEST_PATH': {
+            'provides':'factory_test',
+            'path':'products/rbuilder/$VERSION/pcreator-test'},
+
+        # rPA
+        'RAA_PATH': {
+            'provides':'raa',
+            'path':'products/raa/$VERSION/raa'},
+        'RAA_TEST_PATH': {
+            'provides':'raatest',
+            'path':'products/raa/$VERSION/raa-test'},
+        'RAA_PLUGINS_PATH': {
+            'provides':'raaplugins',
+            'path':'products/raa/$VERSION/raa/raaplugins'},
+
+        # Other products
+        'RBM_PATH': {
+            'provides':'rbm_rc',
+            'path':'products/rbm/$VERSION/rbm/src'},
+        'RBM_TEST_PATH': {
+            'provides':'test',
+            'path':'products/rbm/$VERSION/rbm'},
+        'RBM_RAA_PLUGINS_PATH': {
+            'provides':'rPath',
+            'path':'products/rbuilder/$VERSION/rbm/raaplugins'},
+
+        # Common libraries
+        'PYOVF_PATH': {
+            'provides':'pyovf',
+            'path':'products/rbuilder/$VERSION/pyovf'},
+        'PYOVF_TEST_PATH': {
+            'provides':'functionaltests',
+            'path':'products/rbuilder/$VERSION/pyovf/test'},
+        'PRODUCT_DEFINITION_PATH': {
+            'provides':'rpath-proddef.proddef',
+            'path':'products/rbuilder/$VERSION/rpath-product-definition'},
+        'PRODUCT_DEFINITION_TEST_PATH': {
+            'provides':'proddef_test',
+            'path':'products/rbuilder/$VERSION/rpath-product-definition-private'},
+        'RESTLIB_PATH': {
+            'provides':'restlib',
+            'path':'products/rbuilder/$VERSION/restlib'},
+        'RESTLIB_TEST_PATH': {
+            'provides':'restlib_test',
+            'path':'products/rbuilder/$VERSION/restlib-private'},
+        'STORAGE_PATH': {
+            'provides':'rpath-storage.storage',
+            'path':'products/rbuilder/$VERSION/rpath-storage'},
+        'STORAGE_TEST_PATH': {
+            'provides':'storage_test',
+            'path':'products/rbuilder/$VERSION/rpath-storage-private'},
+        'XMLLIB_PATH': {
+            'provides':'rpath-xmllib.xmllib',
+            'path':'products/rbuilder/$VERSION/rpath-xmllib'},
+        'XMLLIB_TEST_PATH': {
+            'provides':'xmllib_test.xmllibtest',
+            'path':'products/rbuilder/$VERSION/rpath-xmllib-private'},
+        'XOBJ_PATH': {
+            'provides':'xobj',
+            'path':'products/rbuilder/$VERSION/xobj/py'},
+        'XOBJ_TEST_PATH': {
+            'provides':'xobjtest',
+            'path':'products/rbuilder/$VERSION/xobj/py/test'},
+
+        # Third-party libraries
+        'BOTO_PATH': {
+            'provides':'boto',
+            'path':'products/boto/$VERSION/boto'},
+        'STOMP_PATH': {
+            'provides':'stomp',
+            'path':'products/rbuilder/$VERSION/stomp.py'},
+        }
 
 def getPath( varname ):
     v = os.getenv(varname)
