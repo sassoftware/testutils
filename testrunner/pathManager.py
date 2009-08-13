@@ -270,8 +270,9 @@ def discover( varname ):
 
     # 3. we drill down from the top and prefer trunk to numbered versions
     devRoot = os.getenv('RPATH_DEV_ROOT')
+    forestPath = None
     if devRoot:
-        forestPath = os.path.join(devRoot, forestPath)
+        forestPath = os.path.join(devRoot, forestName)
         if os.path.isdir(forestPath):
             dirL = os.listdir(forestPath)
             vers = {}
