@@ -114,15 +114,10 @@ def addExecPath( varname, path=None):
     else:
         # we have to discover the path
         path = discover(varname)
-            
-        if not path:
-            sys.stderr.write("Auto-discovery of path for '%s' has failed!\n" % (varname) )
-            sys.exit(-1)
-        else:
+        if path:
             os.environ[varname] = path
             pathList.append(path)
-            if path != '**SYSTEM**':
-                updatePaths( path )
+            updatePaths( path )
 
     return ":".join(pathList)
 
@@ -163,80 +158,92 @@ def addResourcePath( varname, path, existenceOptional=False):
     return ":".join(pathList)
         
 def discover( varname ):
-    # lookup the var in our default
-    if discoveryDefaults.has_key( varname ):
-        varDict = discoveryDefaults[ varname ]
-        # 1. if there's a absolute path for this variable, we just use it
-        if varDict.has_key( 'absPath' ):
-            if os.path.exists( varDict['absPath'] ):
-                return varDict['absPath']
-            else:
-                sys.stderr.write("'%s' was configured to be '%s' but the path does not exist!\n" 
-                                 % (varname, varDict['absPath'] ) )
-                sys.exit(-1)
+    if not discoveryDefaults.has_key(varname):
+        sys.exit("Don't know how to auto-discover variable %r" % (varname,))
+    varDict = discoveryDefaults[varname]
 
-        # 2. we look in the one level up from the existing repo
-        # (this handles forest and simple repos that live next to each other)
-        forest = getForestRoot(sys.path[0])
-        if forest:
-            pathTemplate = os.path.join( os.getenv("RPATH_DEV_ROOT"), varDict['path'] )
-            ( preVerPath, postVerPath ) = pathTemplate.split('$VERSION/',1)
+    # 1. if there's a absolute path for this variable, we just use it
+    if varDict.has_key( 'absPath' ):
+        if os.path.exists( varDict['absPath'] ):
+            return varDict['absPath']
+        else:
+            sys.exit("Variable %r is configured to be %r but the "
+                    "path does not exist!" % (varname, varDict['absPath']))
 
-            path = os.path.join( forest, postVerPath )
-            if os.path.exists( path ):
-                return path
+    forestName, treeName = varDict['path'].split('$VERSION/', 1)
 
-        # 3. we look in the system if the right env var is set
-        if os.getenv("RPATH_USE_SYSTEM_MODULES"):
-            try:
-                cmd = 'import ' + varDict['provides']
-                exec cmd
-            except KeyError:
-                sys.stderr.write("Auto-discovery configuration doesn't have a 'module' "
-                                 "entry for '%s' even though RPATH_USE_SYSTEM_MODULES is set!\n" % (varname) )
-                sys.exit(-1)
-            except ImportError:
-                sys.stderr.write("Unable to import '%s' for '%s' even though RPATH_USE_SYSTEM_MODULES "
-                                 "is set!\n" % (varDict['provides'], varname) )
-                sys.exit(-1)
-            # ok, we've sucessfully imported so all is good
-            return "**SYSTEM**"
-        
-        # 4. we drill down from the top and prefer trunk to numbered versions
-        dirL = os.listdir( preVerPath )
-        vers = {}
-        selectedVer = None
-        for f in dirL:
-            fp = os.path.join( preVerPath, f )
-
-            if os.path.isdir( fp ):
-                if f.lower() == 'trunk':
-                    selectedVer = f
-                    break
-                
-                try:
-                    vers[float(f)] = f
-                except:
-                    pass
-        
-        if selectedVer:
-            path = os.path.join(preVerPath,selectedVer,postVerPath)
-            if os.path.exists(path):
-                return path
-            else:
-                sys.stderr.write("Auto discovered path ''%s'' for '%s' but it doesn't exist. You might need"
-                                 " to check something out or the discovery config is wront.\n"
-                                 % (varDict['provides'], varname) )
-                sys.exit(-1)
-        maxKey = max(vers.keys())
-        path = os.path.join(preVerPath,vers[maxKey],postVerPath)
+    # 2. we look in the one level up from the existing repo
+    # (this handles forest and simple repos that live next to each other)
+    thisTree = getMercurialRoot(sys.path[0])
+    if thisTree:
+        thisForest = os.path.dirname(thisTree)
+        path = os.path.join(thisForest, treeName)
         if os.path.exists(path):
             return path
 
-    sys.stderr.write("'%s' has no configuration for auto-discovery!\n" % (varname) )
-    sys.exit(-1)
+    # 3. we drill down from the top and prefer trunk to numbered versions
+    devRoot = os.getenv('RPATH_DEV_ROOT')
+    if devRoot:
+        forestPath = os.path.join(devRoot, forestPath)
+        if os.path.isdir(forestPath):
+            dirL = os.listdir(forestPath)
+            vers = {}
+            selectedVer = None
+            for f in dirL:
+                fp = os.path.join(forestPath, f)
+
+                if os.path.isdir( fp ):
+                    if f.lower() == 'trunk':
+                        selectedVer = f
+                        break
+                    
+                    try:
+                        vers[float(f)] = f
+                    except ValueError:
+                        pass
+            
+            if not selectedVer:
+                maxVersion = max(vers.keys())
+                selectedVer = vers[maxVersion]
+
+            path = os.path.join(forestPath, selectedVer, treeName)
+            if os.path.exists(path):
+                return path
+
+    # 4. we look in the system
+    if os.getenv("RPATH_USE_SYSTEM_MODULES") and 'provides' in varDict:
+        moduleName = varDict['provides']
+        try:
+            module = __import__(moduleName)
+        except ImportError:
+            pass
+        else:
+            path = module.__file__
+            if os.path.basename(path).rsplit('.', 1)[0] == '__init__':
+                path = os.path.dirname(path)
+            for n in range(moduleName.count('.') + 1):
+                path = os.path.dirname(path)
+            return path
+
+    print >> sys.stderr, "Could not auto-discover variable", varname
+    if not devRoot:
+        print >> sys.stderr, ("HINT: Try setting RPATH_DEV_ROOT to the root "
+                "of your checkout tree.")
+    elif not thisTree:
+        print >> sys.stderr, ("HINT: Try running this command from inside "
+                "the Hg checkout.")
+    elif not os.path.isdir(forestPath):
+        suggest = os.path.join(forestPath, 'trunk', treeName)
+        print >> sys.stderr, ("HINT: Try checking out %s , if it exists."
+                % (suggest,))
+    sys.exit(1)
+
 
 def updatePaths( path ):
+    if path.endswith('/site-packages'):
+        # Imported from the system; no need to explicitly insert it.
+        return
+
     # add path to sys.path and PYTHONPATH
     pythonPath = os.getenv('PYTHONPATH').split(os.pathsep)
     
@@ -263,18 +270,3 @@ def getMercurialRoot(path='.'):
             return path
         path = os.path.dirname(path)
     return None
-
-
-def getForestRoot(path='.'):
-    """
-    Find the root of the current mercurial forest, if any.
-    """
-    path = last = getMercurialRoot(path)
-    if not path:
-        return None
-    while path != '/':
-        path = os.path.dirname(path)
-        if not os.path.isdir(path + '/.hg'):
-            return last
-        last = path
-    return last
