@@ -174,16 +174,17 @@ def discover( varname ):
                 sys.stderr.write("'%s' was configured to be '%s' but the path does not exist!\n" 
                                  % (varname, varDict['absPath'] ) )
                 sys.exit(-1)
-        
+
         # 2. we look in the one level up from the existing repo
         # (this handles forest and simple repos that live next to each other)
-        outOfRepoPath = walkOutOfRepo(sys.path[0])
-        pathTemplate = os.path.join( os.getenv("RPATH_DEV_ROOT"), varDict['path'] )
-        ( preVerPath, postVerPath ) = pathTemplate.split('$VERSION/',1)
+        forest = getForestRoot(sys.path[0])
+        if forest:
+            pathTemplate = os.path.join( os.getenv("RPATH_DEV_ROOT"), varDict['path'] )
+            ( preVerPath, postVerPath ) = pathTemplate.split('$VERSION/',1)
 
-        path = os.path.join( outOfRepoPath, postVerPath )
-        if os.path.exists( path ):
-            return path
+            path = os.path.join( forest, postVerPath )
+            if os.path.exists( path ):
+                return path
 
         # 3. we look in the system if the right env var is set
         if os.getenv("RPATH_USE_SYSTEM_MODULES"):
@@ -250,45 +251,30 @@ def updatePaths( path ):
 
     os.environ['PYTHONPATH'] = os.pathsep.join(pythonPath)    
 
-def walkOutOfRepo( path ):
-    # walk up and look for the .hg dir
-    repoStr = None
-    currPath = path
-    while True:
-        try:
-            hgPath = os.path.join( currPath, '.hg/hgrc' )    
-            for l in open(hgPath):
-                if l[0:7] == 'default':
-                    repoStr = l
-                    break
-        except:
-            # we could distinguish failures here and flag .hg/hgrc instance with no read access
-            pass
 
-        if currPath != '/' and not repoStr:
-            (currPath, currDir) = os.path.split( currPath )
-        else:
-            break
+def getMercurialRoot(path='.'):
+    """
+    Find the root of the current mercurial checkout, if any. Returns the
+    absolute path to the root, or C{None} if not in a checkout.
+    """
+    path = os.path.normpath(os.path.abspath(path))
+    while path != '/':
+        if os.path.isdir(path + '/.hg'):
+            return path
+        path = os.path.dirname(path)
+    return None
 
-    if not repoStr:
-        sys.stderr.write("Unable to find the .hg/hgrc in the dir stack. '%s' does not appear to be in a repository.\n"
-                         % (path) )
-        sys.exit(-1)
 
-    # walk up and look for the first instance of a non-matching or nonexistent repo str
-    (currPath, currDir) = os.path.split( currPath )
-    weAreOut=False
-    while not weAreOut:
-        try:
-            hgPath = os.path.join( currPath, '.hg/hgrc' )    
-            for l in open(hgPath):
-                if l[0:7] == 'default':
-                    if l != repoStr:
-                        weAreOut = True
-                    break
-            if not weAreOut:
-                (currPath, currDir) = os.path.split( path )
-        except:
-            weAreOut = True
-            
-    return currPath            
+def getForestRoot(path='.'):
+    """
+    Find the root of the current mercurial forest, if any.
+    """
+    path = last = getMercurialRoot(path)
+    if not path:
+        return None
+    while path != '/':
+        path = os.path.dirname(path)
+        if not os.path.isdir(path + '/.hg'):
+            return last
+        last = path
+    return last
