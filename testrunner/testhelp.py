@@ -102,8 +102,9 @@ class TestSuiteHandler(testhandler.TestSuiteHandler):
     def __init__(self, individual, topdir, conaryDir, testPath):
         global _handler
         _handler = self
-        from testrunner import resources
-        cfg = resources.cfg
+        class CFG:
+            pass
+        cfg = CFG()
         cfg.isIndividual = individual
         cfg.cleanTestDirs = not individual
         testhandler.TestSuiteHandler.__init__(self, cfg, None, self.suiteClass)

@@ -14,12 +14,12 @@ import pwd
 
 from testrunner import testhelp
 from testutils.base_server import BaseServer
-from testrunner import resources
 
 from conary.lib import util
 from conary import dbstore
 from conary.dbstore import sqlerrors
 
+import testsuite
 
 # catch subprocess exec errors and be more informative about them
 def osExec(args):
@@ -322,7 +322,7 @@ innodb_fast_shutdown
 log_slow_queries
 long_query_time=1
 """ % d)
-        if resources.cfg.isIndividual:
+        if testsuite.isIndividual():
             f.write("log=%(dir)s/query.log\n" % d)
         f.close()
 
