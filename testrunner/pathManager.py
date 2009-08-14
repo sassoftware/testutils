@@ -59,14 +59,8 @@ discoveryDefaults = {
         'JOB_SLAVE_PATH': {
             'provides':'jobslave',
             'path':'products/rbuilder/$VERSION/jobslave'},
-        'JOB_SLAVE_TEST_PATH': {
-            'provides':'jobslave_helper',
-            'path':'products/rbuilder/$VERSION/jobslave/test'},
         'MCP_PATH': {
             'provides':'mcp',
-            'path':'products/rbuilder/$VERSION/mcp'},
-        'MCP_TEST_PATH': {
-            'provides':'mcp_test',
             'path':'products/rbuilder/$VERSION/mcp'},
         'MINT_PATH': {
             'provides':'mint',
@@ -167,7 +161,7 @@ def getPathList( varname ):
     sys.stderr.write("Path '%s' was requested but it is not defined. Perhaps something needs to be added to testsuite.py?\n" % (varname) )
     sys.exit(-1)
 
-def addExecPath( varname, path=None):
+def addExecPath(varname, path=None, isTestRoot=False):
     varval = os.getenv(varname)
     if type(path) == str:
         path = path.split(":")
@@ -205,6 +199,10 @@ def addExecPath( varname, path=None):
             os.environ[varname] = path
             pathList.append(path)
             updatePaths( path )
+
+    if isTestRoot:
+        assert len(pathList) == 1
+        addExecPath('TEST_PATH', pathList[0])
 
     return ":".join(pathList)
 

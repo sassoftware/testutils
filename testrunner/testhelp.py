@@ -99,7 +99,10 @@ class TestSuiteHandler(testhandler.TestSuiteHandler):
 
     suiteClass = unittest.TestSuite
 
-    def __init__(self, individual, topdir, conaryDir, testPath):
+    def __init__(self, individual,
+            # DEPRECATED:
+            topdir=None, conaryDir=None, testPath=None):
+
         global _handler
         _handler = self
         class CFG:
