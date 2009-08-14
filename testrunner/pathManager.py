@@ -331,8 +331,8 @@ def updatePaths( path ):
         return
 
     # add path to sys.path and PYTHONPATH
-    pythonPath = os.getenv('PYTHONPATH').split(os.pathsep)
-    
+    pythonPath = os.getenv('PYTHONPATH', '').split(os.pathsep)
+
     if path in pythonPath:
         pythonPath.remove(path)
     pythonPath.insert(0,path)
