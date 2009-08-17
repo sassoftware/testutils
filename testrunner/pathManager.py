@@ -53,9 +53,6 @@ discoveryDefaults = {
         'JOB_MASTER_PATH': {
             'provides':'jobmaster',
             'path':'products/rbuilder/$VERSION/jobmaster'},
-        'JOB_MASTER_TEST_PATH': {
-            'provides':'jobmaster_helper',
-            'path':'products/rbuilder/$VERSION/jobmaster/test'},
         'JOB_SLAVE_PATH': {
             'provides':'jobslave',
             'path':'products/rbuilder/$VERSION/jobslave'},
