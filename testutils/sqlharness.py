@@ -137,6 +137,10 @@ class BaseSQLServer(BaseServer):
             print "\nSTART SQL HARNESS", self.driver, path
         self.dbClass = dbClass
 
+    def __del__(self):
+        self.stop()
+        BaseServer.__del__(self)
+
     def createDB(self, name):
         if self.verbose:
             print "CREATE DATABASE", name
