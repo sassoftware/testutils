@@ -5,14 +5,6 @@ import sys
 import re
 import subprocess
 
-conaryPath = os.environ.get('CONARY_PATH', None)
-if not conaryPath:
-    print >>sys.stderr, 'please set CONARY_PATH'
-    sys.exit(1)
-
-if conaryPath not in sys.path:
-    sys.path.insert(0, conaryPath)
-
 from conary.lib import util
 
 class CoverageWrapper(object):
