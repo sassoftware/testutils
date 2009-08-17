@@ -152,6 +152,7 @@ class SkipTestTextResult(unittest._TextTestResult, SkipTestResultMixin):
         self.erroredTests = 0
         self.skippedTests = 0
 
+        self.alwaysSucceed = kw.pop('alwaysSucceed', False)
         self.debug = kw.pop('debug', False)
         self.useCallback = kw.pop('useCallback', True)
         self.xml_stream = kw.pop('xml_stream', None)
@@ -312,6 +313,12 @@ class SkipTestTextResult(unittest._TextTestResult, SkipTestResultMixin):
 
         self.xml_stream['file'].flush()
 
+    def getExitCode(self):
+        if self.alwaysSucceed or self.wasSuccessful():
+            return 0
+        else:
+            return 16
+
 
 class DebugTestRunner(unittest.TextTestRunner):
     def __init__(self, *args, **kwargs):
@@ -319,6 +326,7 @@ class DebugTestRunner(unittest.TextTestRunner):
         self.useCallback = kwargs.pop('useCallback', False)
         self.oneLine = kwargs.pop('oneLine', True)
         self.xml_stream = kwargs.pop('xml_stream', None)
+        self.alwaysSucceed = kwargs.pop('alwaysSucceed')
         if self.oneLine or self.useCallback:
             kwargs['verbosity'] = 0
         else:
@@ -354,10 +362,6 @@ class DebugTestRunner(unittest.TextTestRunner):
 
     def _makeResult(self):
         return SkipTestTextResult(self.stream, self.descriptions,
-                                  self.verbosity, test=self.test, 
-                                  debug=self.debug,
-                                  useCallback=self.useCallback,
-                                  oneLine=self.oneLine,
-                                  xml_stream=self.xml_stream)
-
-
+                self.verbosity, test=self.test, debug=self.debug,
+                useCallback=self.useCallback, oneLine=self.oneLine,
+                xml_stream=self.xml_stream, alwaysSucceed=self.alwaysSucceed)

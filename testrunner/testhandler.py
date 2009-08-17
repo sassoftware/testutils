@@ -333,11 +333,11 @@ class _TestSuiteHandler(object):
                 args += [ x for x in open('.failed').read().split('\n') if x]
             else:
                 raise RuntimeError('Could not find .failed file from previous failing run')
-        runner = output.DebugTestRunner(
-                                debug=options.debug,
-                                useCallback=not options.dots,
-                                oneLine=not (options.verbose or options.dots),
-                                stream=stream, xml_stream=xml_stream)
+        runner = output.DebugTestRunner(debug=options.debug,
+                useCallback=not options.dots,
+                oneLine=not (options.verbose or options.dots),
+                stream=stream, xml_stream=xml_stream,
+                alwaysSucceed=options.always_succeed)
         if self.isIndividual():
             program = TestProgram(testRunner=runner, testLoader=loader, 
                                  argv=[sys.argv[0]] + args)
@@ -418,6 +418,8 @@ class _TestSuiteHandler(object):
         parser.add_option('--xml-prefix', dest='xml_prefix',
                           help='prefix all classes with PREFIX in JUnit output',
                           metavar='PREFIX')
+        parser.add_option('--always-succeed', action='store_true',
+                help="Return a success exit code even if tests failed")
         return parser
 
     def parseOptions(self, parser, argv):
