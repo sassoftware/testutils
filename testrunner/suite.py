@@ -14,6 +14,7 @@ class TestSuite(object):
     # Number of directories to strip off from testsuite.py's filename in order
     # to get to the testsuite's top level
     topLevelStrip = 1
+    catchSIGUSR1 = False
 
     def setup(self):
         if self.pathManager is None:
@@ -39,7 +40,8 @@ class TestSuite(object):
 
     def setupCoverageHooks(self):
         from conary.lib import util
-        sys.excepthook = util.genExcepthook(True)
+        sys.excepthook = util.genExcepthook(True,
+            catchSIGUSR1 = self.catchSIGUSR1)
 
         # Coverage hooks
         from conary.lib import coveragehook
@@ -63,7 +65,7 @@ class TestSuite(object):
     def sortTests(self, tests):
         return tests
 
-    def main(self, argv, individual = True):
+    def main(self, argv = None, individual = True):
         self.setup()
         from testrunner import testhelp
         self.__class__.individual = individual
