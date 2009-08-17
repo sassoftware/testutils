@@ -105,7 +105,7 @@ discoveryDefaults = {
             'provides':'functionaltests',
             'path':'products/rbuilder/$VERSION/pyovf/test'},
         'PRODUCT_DEFINITION_PATH': {
-            'provides':'rpath-proddef.proddef',
+            'provides':'rpath_proddef',
             'path':'products/rbuilder/$VERSION/rpath-product-definition'},
         'PRODUCT_DEFINITION_TEST_PATH': {
             'provides':'proddef_test',
@@ -117,16 +117,16 @@ discoveryDefaults = {
             'provides':'restlib_test',
             'path':'products/rbuilder/$VERSION/restlib-private'},
         'STORAGE_PATH': {
-            'provides':'rpath-storage.storage',
+            'provides':'rpath_storage',
             'path':'products/rbuilder/$VERSION/rpath-storage'},
         'STORAGE_TEST_PATH': {
             'provides':'storage_test',
             'path':'products/rbuilder/$VERSION/rpath-storage-private'},
         'XMLLIB_PATH': {
-            'provides':'rpath-xmllib.xmllib',
+            'provides':'rpath_xmllib',
             'path':'products/rbuilder/$VERSION/rpath-xmllib'},
         'XMLLIB_TEST_PATH': {
-            'provides':'xmllib_test.xmllibtest',
+            'provides':'xmllibtest',
             'path':'products/rbuilder/$VERSION/rpath-xmllib-private'},
         'XOBJ_PATH': {
             'provides':'xobj',
