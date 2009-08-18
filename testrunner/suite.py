@@ -5,6 +5,7 @@
 
 import os
 import sys
+import unittest
 
 class TestSuite(object):
     individual = False
@@ -15,6 +16,8 @@ class TestSuite(object):
     # to get to the testsuite's top level
     topLevelStrip = 1
     catchSIGUSR1 = False
+
+    suiteClass = unittest.TestSuite
 
     def setup(self):
         if self.pathManager is None:
@@ -56,12 +59,6 @@ class TestSuite(object):
         dname = os.path.realpath(os.path.dirname(self.module_file))
         return os.sep.join(dname.split(os.sep)[:-self.topLevelStrip])
 
-    def getCoverageDirs(self, handler, environ):
-        return []
-
-    def getCoverageExclusions(self, handler, environ):
-        return []
-
     def sortTests(self, tests):
         return tests
 
@@ -71,9 +68,20 @@ class TestSuite(object):
         self.__class__.individual = individual
 
         testPath = os.getenv('TEST_PATH')
-        handlerClass = testhelp.getHandlerClass(testhelp.ConaryTestSuite,
-            self.getCoverageDirs, self.getCoverageExclusions, self.sortTests)
-        handler = handlerClass(individual=individual, testPath=testPath)
+
+        class Handler(testhelp.TestSuiteHandler):
+            suiteClass = self.__class__.suiteClass
+            def getCoverageDirs(slf, environ):
+                if hasattr(self, 'getCoverageDirs'):
+                    return self.getCoverageDirs(slf, environ)
+                return testhelp.TestSuiteHandler.getCoverageDirs(slf, environ)
+
+            def getCoverageExclusions(slf, environ):
+                if hasattr(self, 'getCoverageExclusions'):
+                    return self.getCoverageExclusions(slf, environ)
+                return testhelp.TestSuiteHandler.getCoverageExclusions(slf, environ)
+
+        handler = Handler(individual=individual)
 
         if argv is None:
             argv = list(sys.argv)
