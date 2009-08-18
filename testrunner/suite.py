@@ -10,8 +10,7 @@ import unittest
 class TestSuite(object):
     individual = False
     pathManager = None
-    module_name = None
-    module_file = None
+    testsuite_module = None
     # Number of directories to strip off from testsuite.py's filename in order
     # to get to the testsuite's top level
     topLevelStrip = 1
@@ -36,10 +35,10 @@ class TestSuite(object):
 
     def setupModules(self):
         from testrunner.testhelp import context, TestCase, findPorts, SkipTestException
-        sys.modules[self.module_name].context = context
-        sys.modules[self.module_name].TestCase = TestCase
-        sys.modules[self.module_name].findPorts = findPorts
-        sys.modules[self.module_name].SkipTestException = SkipTestException
+        self.testsuite_module.context = context
+        self.testsuite_module.TestCase = TestCase
+        self.testsuite_module.findPorts = findPorts
+        self.testsuite_module.SkipTestException = SkipTestException
 
     def setupCoverageHooks(self):
         from conary.lib import util
@@ -56,7 +55,7 @@ class TestSuite(object):
         pass
 
     def getTestTopDir(self):
-        dname = os.path.realpath(os.path.dirname(self.module_file))
+        dname = os.path.realpath(os.path.dirname(self.testsuite_module.__file__))
         return os.sep.join(dname.split(os.sep)[:-self.topLevelStrip])
 
     def sortTests(self, tests):
@@ -74,7 +73,7 @@ class TestSuite(object):
             def getCoverageDirs(slf, environ):
                 if hasattr(self, 'getCoverageDirs'):
                     return self.getCoverageDirs(slf, environ)
-                return testhelp.TestSuiteHandler.getCoverageDirs(slf, environ)
+                return [ os.path.dirname(self.testsuite_module.__file__) ]
 
             def getCoverageExclusions(slf, environ):
                 if hasattr(self, 'getCoverageExclusions'):
