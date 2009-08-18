@@ -14,7 +14,7 @@ class TestSuite(object):
     # Number of directories to strip off from testsuite.py's filename in order
     # to get to the testsuite's top level
     topLevelStrip = 1
-    catchSIGUSR1 = False
+    catchSIGUSR1 = True
 
     suiteClass = unittest.TestSuite
 
