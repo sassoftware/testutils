@@ -256,7 +256,7 @@ def discover( varname ):
 
     # 2. we look in the one level up from the existing repo
     # (this handles forest and simple repos that live next to each other)
-    thisTree = getMercurialRoot(sys.path[0])
+    thisTree = getMercurialRoot()
     if thisTree:
         thisForest = os.path.dirname(thisTree)
         path = os.path.join(thisForest, treeName)
