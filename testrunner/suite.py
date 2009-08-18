@@ -59,7 +59,7 @@ class TestSuite(object):
     def getCoverageDirs(self, handler, environ):
         return []
 
-    def getCoverageExclusions(self, environ):
+    def getCoverageExclusions(self, handler, environ):
         return []
 
     def sortTests(self, tests):
