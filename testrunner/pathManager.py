@@ -69,7 +69,7 @@ discoveryDefaults = {
             'provides':'rPath',
             'path':'products/rbuilder/$VERSION/mint/raaplugins'},
         'PACKAGE_CREATOR_SERVICE_PATH': {
-            'provides':'preator',
+            'provides':'pcreator',
             'path':'products/rbuilder/$VERSION/pcreator'},
         'PACKAGE_CREATOR_SERVICE_TEST_PATH': {
             'provides':'factory_test',
