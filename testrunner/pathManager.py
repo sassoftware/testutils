@@ -158,6 +158,13 @@ def getPathList( varname ):
     sys.stderr.write("Path '%s' was requested but it is not defined. Perhaps something needs to be added to testsuite.py?\n" % (varname) )
     sys.exit(-1)
 
+def getCoveragePath(varname):
+    if not discoveryDefaults.has_key(varname):
+        sys.exit("Don't know how to auto-discover variable %r" % (varname,))
+    varDict = discoveryDefaults[varname]
+    v = getPath(varname)
+    return os.path.join(v, varDict['provides'])
+
 def addExecPath(varname, path=None, isTestRoot=False):
     varval = os.getenv(varname)
     if type(path) == str:
