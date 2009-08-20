@@ -56,7 +56,10 @@ class TestSuite(object):
 
     def getTestTopDir(self):
         dname = os.path.realpath(os.path.dirname(self.testsuite_module.__file__))
-        return os.sep.join(dname.split(os.sep)[:-self.topLevelStrip])
+        if self.topLevelStrip:
+            return os.sep.join(dname.split(os.sep)[:-self.topLevelStrip])
+        else:
+            return dname
 
     def sortTests(self, tests):
         return tests
