@@ -493,4 +493,32 @@ class TestCase(unittest.TestCase):
 
     assertRaises = failUnlessRaises
 
+    @classmethod
+    def _cleanse(cls, node):
+        node.tail = None
+        children = node.getchildren()
+        for c in children:
+            cls._cleanse(c)
+        if children:
+            node.text = None
+        attribs = sorted(node.attrib.items())
+        node.attrib.clear()
+        node.attrib.update(attribs)
+        return node
+
+    @classmethod
+    def normalizeXML(cls, data):
+        """lxml will produce the header with single quotes for its attributes,
+        while xmllint uses double quotes. This function normalizes the data"""
+        from lxml import etree
+        tree = cls._cleanse(etree.fromstring(data.strip()))
+        return etree.tostring(tree, pretty_print = True, with_tail = False)
+
+    def assertXMLEquals(self, first, second):
+        first = self.normalizeXML(first)
+        second = self.normalizeXML(second)
+        import difflib
+        diff = '\n'.join(list(difflib.unified_diff(first.splitlines(),
+                second.splitlines()))[2:])
+        self.failIf(first != second, diff)
 
