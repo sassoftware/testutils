@@ -494,31 +494,43 @@ class TestCase(unittest.TestCase):
     assertRaises = failUnlessRaises
 
     @classmethod
-    def _cleanse(cls, node):
-        node.tail = None
-        children = node.getchildren()
-        for c in children:
-            cls._cleanse(c)
-        if children:
-            node.text = None
-        attribs = sorted(node.attrib.items())
-        node.attrib.clear()
-        node.attrib.update(attribs)
-        return node
+    def _strip(cls, data):
+        if data is None:
+            return None
+        return data.strip()
 
     @classmethod
-    def normalizeXML(cls, data):
-        """lxml will produce the header with single quotes for its attributes,
-        while xmllint uses double quotes. This function normalizes the data"""
-        from lxml import etree
-        tree = cls._cleanse(etree.fromstring(data.strip()))
-        return etree.tostring(tree, pretty_print = True, with_tail = False)
+    def _nodecmp(cls, node1, node2):
+        if node1.attrib != node2.attrib:
+            return False
+        if node1.nsmap != node2.nsmap:
+            return False
+        children1 = node1.getchildren()
+        children2 = node2.getchildren()
+
+        if children1 or children2:
+            # Compare text in nodes that have children (mixed content).
+            # We shouldn't have mixed content, but we need to be flexible.
+            if cls._strip(node1.text) != cls._strip(node2.text):
+                return False
+            if len(children1) != len(children2):
+                return False
+            for ch1, ch2 in zip(children1, children2):
+                if not cls._nodecmp(ch1, ch2):
+                    return False
+            return True
+        # No children, compare the text
+        return node1.text == node2.text
 
     def assertXMLEquals(self, first, second):
-        first = self.normalizeXML(first)
-        second = self.normalizeXML(second)
-        import difflib
-        diff = '\n'.join(list(difflib.unified_diff(first.splitlines(),
-                second.splitlines()))[2:])
-        self.failIf(first != second, diff)
+        from lxml import etree
+        tree0 = etree.fromstring(first.strip())
+        tree1 = etree.fromstring(second.strip())
+        if not self._nodecmp(tree0, tree1):
+            data0 = etree.tostring(tree0, pretty_print=True, with_tail=False)
+            data1 = etree.tostring(tree1, pretty_print=True, with_tail=False)
+            import difflib
+            diff = '\n'.join(list(difflib.unified_diff(data0.splitlines(),
+                    data1.splitlines()))[2:])
+            self.fail(diff)
 
