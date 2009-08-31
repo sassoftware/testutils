@@ -88,7 +88,7 @@ class TestSuite(object):
         if argv is None:
             argv = list(sys.argv)
         results = handler.main(argv)
-        return (not results.wasSuccessful())
+        return results.getExitCode()
 
     def run(self):
         sys.exit(self.main(sys.argv, individual = False))
