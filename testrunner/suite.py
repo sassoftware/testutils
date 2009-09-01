@@ -65,9 +65,9 @@ class TestSuite(object):
         return tests
 
     def main(self, argv = None, individual = True):
+        self.__class__.individual = individual
         self.setup()
         from testrunner import testhelp
-        self.__class__.individual = individual
 
         testPath = os.getenv('TEST_PATH')
 
