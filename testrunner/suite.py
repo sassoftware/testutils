@@ -13,12 +13,15 @@ class TestSuite(object):
     testsuite_module = None
     # Number of directories to strip off from testsuite.py's filename in order
     # to get to the testsuite's top level
-    topLevelStrip = 1
+    topLevelStrip = 0
     catchSIGUSR1 = True
 
     suiteClass = unittest.TestSuite
 
+    setupDone = False
     def setup(self):
+        if self.setupDone:
+            return
         if self.pathManager is None:
             from testrunner import pathManager
             self.__class__.pathManager = pathManager
@@ -28,6 +31,8 @@ class TestSuite(object):
         self.setupModules()
         self.setupCoverageHooks()
         self.setupSpecific()
+
+        self.setupDone = True
 
     def setupTestDir(self):
         testPath = self.getTestTopDir()
