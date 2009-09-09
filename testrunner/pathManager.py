@@ -64,7 +64,7 @@ discoveryDefaults = {
             'path':'products/rbuilder/$VERSION/mint'},
         'MINT_TEST_PATH': {
             'provides':'mint_test',
-            'path':'products/rbuilder/$VERSION/mint/mint_test'},
+            'path':'products/rbuilder/$VERSION/mint'},
         'MINT_RAA_PLUGINS_PATH': {
             'provides':'rPath',
             'path':'products/rbuilder/$VERSION/mint/raaplugins'},
