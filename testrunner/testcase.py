@@ -10,7 +10,7 @@ import pwd
 import tempfile
 import types
 import unittest
-
+import testhandler
 
 class LogFilter:
     def __init__(self):
@@ -48,16 +48,16 @@ class LogFilter:
         compares stored log messages against a sequence of messages and
         resets the filter
         """
-	if self.records == None or self.records == []:
-	    if records:
-		raise AssertionError, "expected log messages, none found"
-	    return
+        if self.records == None or self.records == []:
+            if records:
+                raise AssertionError, "expected log messages, none found"
+            return
         if type(records) is str:
             records = (records,)
 
-	if len(records) != len(self.records):
-	    raise AssertionError, "expected log message count does not match"
-	    
+        if len(records) != len(self.records):
+            raise AssertionError, "expected log message count does not match"
+
         for num, record in enumerate(records):
             if self.records[num] != record:
                 raise AssertionError, "expected log messages do not match: '%s' != '%s'" %(self.records[num], record)
@@ -69,16 +69,16 @@ class LogFilter:
         compares stored log messages against a sequence of messages and
         resets the filter.  order does not matter.
         """
-	if self.records == None or self.records == []:
-	    if desiredList:
-		raise AssertionError, "Did not receive any log messages when expecting %s" % (desiredList,)
-	    return
+        if self.records == None or self.records == []:
+            if desiredList:
+                raise AssertionError, "Did not receive any log messages when expecting %s" % (desiredList,)
+            return
 
         if originalRecords is None:
             originalRecords = desiredList
 
         if not allowMissing and len(desiredList) != len(self.records):
-	    raise AssertionError, "expected log message count does not match: desired / expected:\n%s\n%s" %(
+            raise AssertionError, "expected log message count does not match: desired / expected:\n%s\n%s" %(
                 pprint.pformat(desiredList, width=1),
                 pprint.pformat(self.records, width=1))
 
@@ -121,7 +121,7 @@ class TestCase(unittest.TestCase):
     TIMEZONE = 'Pacific/Fiji'
 
     def __init__(self, methodName):
-	unittest.TestCase.__init__(self, methodName)
+        unittest.TestCase.__init__(self, methodName)
         self.logFilter = LogFilter()
         self.owner = pwd.getpwuid(os.getuid())[0]
         self.group = grp.getgrgid(os.getgid())[0]
@@ -194,7 +194,7 @@ class TestCase(unittest.TestCase):
 
     @staticmethod
     def _openFdSet():
-        fdPath ='/proc/%s/fd' % os.getpid() 
+        fdPath ='/proc/%s/fd' % os.getpid()
         s = set()
         for fd in os.listdir(fdPath):
             try:
@@ -216,7 +216,7 @@ class TestCase(unittest.TestCase):
     def run(self, *args, **kw):
         from conary.lib import util
         fdCount = util.countOpenFileDescriptors()
-        fdPath ='/proc/%s/fd' % os.getpid() 
+        fdPath ='/proc/%s/fd' % os.getpid()
         if fdCount != len(self.openFds):
             self.openFds = self._openFdSet()
 
@@ -338,24 +338,27 @@ class TestCase(unittest.TestCase):
             return (ret, sout + serr)
 
     def discardOutput(self, func, *args, **kwargs):
-	sys.stdout.flush()
-	stdout = os.dup(sys.stdout.fileno())
-	stderr = os.dup(sys.stderr.fileno())
+        if 'SUPRESS_DISCARDING_OUTPUT' in os.environ:
+            return func(*args, **kwargs)
+
+        sys.stdout.flush()
+        stdout = os.dup(sys.stdout.fileno())
+        stderr = os.dup(sys.stderr.fileno())
         null = os.open('/dev/null', os.W_OK)
-	os.dup2(null, sys.stdout.fileno())
-	os.dup2(null, sys.stderr.fileno())
+        os.dup2(null, sys.stdout.fileno())
+        os.dup2(null, sys.stderr.fileno())
         os.close(null)
-	try:
-	    ret = func(*args, **kwargs)
-	    sys.stdout.flush()
-	    sys.stderr.flush()
+        try:
+            ret = func(*args, **kwargs)
+            sys.stdout.flush()
+            sys.stderr.flush()
         finally:
-	    os.dup2(stdout, sys.stdout.fileno())
+            os.dup2(stdout, sys.stdout.fileno())
             os.close(stdout)
-	    os.dup2(stderr, sys.stderr.fileno())
+            os.dup2(stderr, sys.stderr.fileno())
             os.close(stderr)
 
-	return ret
+        return ret
 
     def logCheck2(self, records, fn, *args, **kwargs):
         from conary.lib import log
@@ -367,89 +370,89 @@ class TestCase(unittest.TestCase):
     def logCheck(self, fn, args, records, kwargs={}, regExp = False,
                  verbosity = None):
         from conary.lib import log
-	self.logFilter.add()
+        self.logFilter.add()
         if verbosity != None:
             log.setVerbosity(verbosity)
-	rc = fn(*args, **kwargs)
-	try:
+        rc = fn(*args, **kwargs)
+        try:
             if regExp:
                 self.logFilter.regexpCompare(records)
             else:
                 self.logFilter.compare(records)
-	finally:
-	    self.logFilter.remove()
-	return rc
+        finally:
+            self.logFilter.remove()
+        return rc
 
     def mimicRoot(self):
         from conary.lib import util
 
-	self.oldgetuid = os.getuid
-	self.oldmknod = os.mknod
-	self.oldlchown = os.lchown
-	self.oldchown = os.chown
-	self.oldchmod = os.chmod
-	self.oldchroot = os.chroot
-	self.oldexecl = os.execl
-	self.oldexecve = os.execve
+        self.oldgetuid = os.getuid
+        self.oldmknod = os.mknod
+        self.oldlchown = os.lchown
+        self.oldchown = os.chown
+        self.oldchmod = os.chmod
+        self.oldchroot = os.chroot
+        self.oldexecl = os.execl
+        self.oldexecve = os.execve
         self.oldMassCloseFDs = util.massCloseFileDescriptors
-	self.oldutime = os.utime
-	os.getuid = lambda : 0
-	os.mknod = self.ourMknod
-	os.lchown = self.ourChown
-	os.chown = self.ourChown
-	os.chmod = self.ourChmod
-	os.chroot = self.ourChroot
-	os.execl = self.ourExecl
-	os.execve = self.ourExecve
+        self.oldutime = os.utime
+        os.getuid = lambda : 0
+        os.mknod = self.ourMknod
+        os.lchown = self.ourChown
+        os.chown = self.ourChown
+        os.chmod = self.ourChmod
+        os.chroot = self.ourChroot
+        os.execl = self.ourExecl
+        os.execve = self.ourExecve
         util.massCloseFileDescriptors = lambda x, y: 0
-	os.utime = lambda x, y: 0
-	self.thisRoot = ''
-	self.chownLog = []
+        os.utime = lambda x, y: 0
+        self.thisRoot = ''
+        self.chownLog = []
         self.chmodLog = []
-	self.mknodLog = []
+        self.mknodLog = []
 
     def ourChroot(self, *args):
-	self.thisRoot = os.sep.join((self.thisRoot, args[0]))
+        self.thisRoot = os.sep.join((self.thisRoot, args[0]))
 
     def ourExecl(self, *args):
-	args = list(args)
-	args[0:1] = [os.sep.join((self.thisRoot, args[0]))]
-	self.oldexecl(*args)
+        args = list(args)
+        args[0:1] = [os.sep.join((self.thisRoot, args[0]))]
+        self.oldexecl(*args)
 
     def ourExecve(self, *args):
-	args = list(args)
-	args[0:1] = [os.sep.join((self.thisRoot, args[0]))]
-	self.oldexecve(*args)
+        args = list(args)
+        args[0:1] = [os.sep.join((self.thisRoot, args[0]))]
+        self.oldexecve(*args)
 
     def ourChown(self, *args):
-	self.chownLog.append(args)
+        self.chownLog.append(args)
 
     def ourMknod(self, *args):
-	self.mknodLog.append(args)
+        self.mknodLog.append(args)
 
     def ourChmod(self, *args):
-	# we cannot chmod a file that doesn't exist (like a device node)
-	# try the chmod for files that do exist
+        # we cannot chmod a file that doesn't exist (like a device node)
+        # try the chmod for files that do exist
         self.chmodLog.append(args)
-	try:
-	    self.oldchmod(*args)
-	except:
-	    pass
+        try:
+            self.oldchmod(*args)
+        except:
+            pass
 
     def realRoot(self):
         from conary.lib import util
 
-	os.getuid = self.oldgetuid
-	os.mknod = self.oldmknod
-	os.lchown = self.oldlchown
-	os.chown = self.oldchown
-	os.chmod = self.oldchmod
-	os.chroot = self.oldchroot
-	os.execl = self.oldexecl
-	os.execve = self.oldexecve
-	os.utime = self.oldutime
+        os.getuid = self.oldgetuid
+        os.mknod = self.oldmknod
+        os.lchown = self.oldlchown
+        os.chown = self.oldchown
+        os.chmod = self.oldchmod
+        os.chroot = self.oldchroot
+        os.execl = self.oldexecl
+        os.execve = self.oldexecve
+        os.utime = self.oldutime
         util.massCloseFileDescriptors = self.oldMassCloseFDs
-	self.chownLog = []
+        self.chownLog = []
 
     def findUnknownIds(self):
         uid = 0

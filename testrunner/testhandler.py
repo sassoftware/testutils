@@ -230,7 +230,7 @@ class _TestSuiteHandler(object):
     tests run: %s
     skipped:   %s
     failed:    %s
-    ''' % (results.testsRun, results.skippedTests, 
+    ''' % (results.testsRun, results.skippedTests,
           (results.erroredTests + results.failedTests)))
 
     def _getTestsToRun(self, argList=[]):
@@ -300,7 +300,7 @@ class _TestSuiteHandler(object):
             prof.start()
         signal.signal(signal.SIGUSR1, self.sigUsr1Handler)
         suite = self.suiteClass()
-        loader = Loader(context = options.context, 
+        loader = Loader(context = options.context,
                         suiteClass=self.suiteClass)
 
         # output to stdout, not stderr.  reopen because we do some mucking
@@ -338,8 +338,9 @@ class _TestSuiteHandler(object):
                 oneLine=not (options.verbose or options.dots),
                 stream=stream, xml_stream=xml_stream,
                 alwaysSucceed=options.always_succeed)
+
         if self.isIndividual():
-            program = TestProgram(testRunner=runner, testLoader=loader, 
+            program = TestProgram(testRunner=runner, testLoader=loader,
                                  argv=[sys.argv[0]] + args)
             results = program.results
         else:
@@ -368,7 +369,7 @@ class _TestSuiteHandler(object):
                 # python 2.6 renamed the field to _testMethodName
                 testMethodName = getattr(test, '_testMethodName', None) or \
                         getattr(test, '_TestCase__testMethodName')
-                module =  test.__class__.__module__ 
+                module =  test.__class__.__module__
                 if module == '__main__':
                     module = ''
                 else:
@@ -378,7 +379,7 @@ class _TestSuiteHandler(object):
                 print testName
                 failedTests.write(testName + '\n')
             print '(Rerun w/ --rerun-failed to rerun only failed tests)'
-  
+
         if options.stat_file:
             outputStats(results, open(statFile, 'w'))
 
@@ -403,13 +404,13 @@ class _TestSuiteHandler(object):
         parser.add_option('--context', action='store', dest='context',
                           help='limit tests to tests in context CONTEXT',
                           metavar='CONTEXT')
-        parser.add_option('--rerun-failed', action='store_true', 
+        parser.add_option('--rerun-failed', action='store_true',
                           dest='rerun_failed',
                           help='rerun those tests that failed')
         parser.add_option('--no-report', action='store_false', dest='report',
                           default=True,
                           help='Do not generate report after running coverage')
-        parser.add_option('--no-annotate', action='store_false', 
+        parser.add_option('--no-annotate', action='store_false',
                           dest='annotate', default=True,
                           help='Do not generate report after running coverage')
         parser.add_option('--xml-dir', dest='xml_dir',
@@ -455,7 +456,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
             filesToCover = filesToCover.split(',')
 
         baseDirs = self.getCoverageDirs(environ)
-	excludePaths = self.getCoverageExclusions(environ)
+        excludePaths = self.getCoverageExclusions(environ)
         if isinstance(baseDirs, str):
             baseDirs = [baseDirs]
 
