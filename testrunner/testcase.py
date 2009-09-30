@@ -338,7 +338,7 @@ class TestCase(unittest.TestCase):
             return (ret, sout + serr)
 
     def discardOutput(self, func, *args, **kwargs):
-        if 'SUPRESS_DISCARDING_OUTPUT' in os.environ:
+        if 'SUPPRESS_DISCARDING_OUTPUT' in os.environ:
             return func(*args, **kwargs)
 
         sys.stdout.flush()
