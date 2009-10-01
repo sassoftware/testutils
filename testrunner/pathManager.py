@@ -10,7 +10,7 @@ import stat
 # Search order:
 # 1. absolute path
 # 2. one dir up from the current repo (i.e. the same forest or parallel repo)
-# 3. Start at $RPATH_DEV_REPO and look down assuming a directory structure like
+# 3. Start at $RPATH_DEV_ROOT and look down assuming a directory structure like
 #     the Hg repo and prefering trunk to versioned checkouts
 # 4. If $RPATH_USE_SYSTEM_MODULES is set we search the existing system path
 
