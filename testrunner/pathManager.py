@@ -50,6 +50,9 @@ discoveryDefaults = {
         'CATALOG_SERVICE_TEST_PATH': {
             'provides':'catalogService_test',
             'path':'products/rbuilder/$VERSION/catalog-service-private'},
+        'CAPSULE_INDEXER_PATH' : {
+            'provides':'rpath_capsule_indexer',
+            'path':'products/rbuilder/$VERSION/rpath-capsule-indexer'},
         'JOB_MASTER_PATH': {
             'provides':'jobmaster',
             'path':'products/rbuilder/$VERSION/jobmaster'},

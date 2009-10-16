@@ -11,6 +11,7 @@ import tempfile
 import types
 import unittest
 import testhandler
+from testutils import os_utils
 
 class LogFilter:
     def __init__(self):
@@ -537,3 +538,30 @@ class TestCase(unittest.TestCase):
                     data1.splitlines()))[2:])
             self.fail(diff)
 
+class TestCaseWithWorkDir(TestCase):
+    testDirName = 'testcase-'
+
+    @classmethod
+    def isIndividual(cls):
+        import testsuite
+        individual = getattr(testsuite, '_individual', None)
+        if individual is None:
+            individual = getattr(testsuite, 'Suite').individual
+        return bool(individual)
+
+    def setUp(self):
+        TestCase.setUp(self)
+        if self.isIndividual():
+            self.workDir = "/tmp/%s%s" % (self.testDirName, os_utils.effectiveUser)
+        else:
+            from testrunner import testhelp
+            self.workDir = testhelp.getTempDir(self.testDirName)
+        from conary.lib import util
+        util.rmtree(self.workDir, ignore_errors = True)
+        util.mkdirChain(self.workDir)
+
+    def tearDown(self):
+        from conary.lib import util
+        TestCase.tearDown(self)
+        if not self.isIndividual():
+            util.rmtree(self.workDir, ignore_errors = True)
