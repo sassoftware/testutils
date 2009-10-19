@@ -7,7 +7,6 @@ import sys
 import types
 import unittest
 
-from testrunner import coveragewrapper
 from testrunner import output
 from testrunner import pathManager
 
@@ -442,6 +441,7 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
         return self.cfg.coverageDirs
 
     def runCoverage(self, options, argv):
+        from testrunner import coveragewrapper
         environ = coveragewrapper.getEnviron()
         stateFile = options.stat_file
         if options.patch_coverage:
