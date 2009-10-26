@@ -53,6 +53,9 @@ discoveryDefaults = {
         'CAPSULE_INDEXER_PATH' : {
             'provides':'rpath_capsule_indexer',
             'path':'products/rbuilder/$VERSION/rpath-capsule-indexer'},
+        'CAPSULE_INDEXER_TEST_PATH' : {
+            'provides':'capsule_indexertest',
+            'path':'products/rbuilder/$VERSION/rpath-capsule-indexer-test'},
         'JOB_MASTER_PATH': {
             'provides':'jobmaster',
             'path':'products/rbuilder/$VERSION/jobmaster'},
