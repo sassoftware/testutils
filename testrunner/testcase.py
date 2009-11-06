@@ -501,7 +501,8 @@ class TestCase(unittest.TestCase):
     def _strip(cls, data):
         if data is None:
             return None
-        return data.strip()
+        # Convert empty string to None
+        return data.strip() or None
 
     @classmethod
     def _nodecmp(cls, node1, node2):
