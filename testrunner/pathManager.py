@@ -148,14 +148,23 @@ discoveryDefaults = {
         'STOMP_PATH': {
             'provides':'stomp',
             'path':'products/rbuilder/$VERSION/stomp.py'},
+
+        # infra projects
+        'SELFSERVE_PATH' : {
+            'provides': 'models',
+            'path' : 'infra/selfserve'},
+        'SELFSERVE_TEST_PATH' : {
+            'provides':'unit_test',
+            'path':'infra/selfserve/selfserve_test/'},
         }
+
 
 def getPath( varname ):
     v = os.getenv(varname)
     if v:
         return v
     sys.stderr.write("Path '%s' was requested but it is not defined. Perhaps something needs to be added to testsuite.py?\n" % (varname) )
-    sys.exit(-1)    
+    sys.exit(-1)
 
 def getPathList( varname ):
     v = os.getenv(varname)
@@ -184,7 +193,8 @@ def addExecPath(varname, path=None, isTestRoot=False):
                 updatePaths( p )
                 pathList.append(p)
             else:
-                sys.stderr.write("'%s' was set but '%s' does not exist!\n" % (varname,p) )
+                sys.stderr.write("'%s' was set but '%s' does not exist!\n" 
+                                 % (varname,p) )
                 sys.exit(-1)
     elif path:
         for p in path:
@@ -197,7 +207,9 @@ def addExecPath(varname, path=None, isTestRoot=False):
                 sys.stderr.write("WARNING: Path specified for '%s' contains '%s' but it does not exist. "
                                  "Ignoring\n" % (varname,p) )
         if not pathList:
-            sys.stderr.write("Path '%s' provided for '%s' contains no valid paths.\n" % (path,varname) )
+            sys.stderr.write(
+                "Path '%s' provided for '%s' contains no valid paths.\n"
+                % (path,varname) )
             sys.exit(-1)
 
         # update the environment
@@ -253,6 +265,8 @@ def addResourcePath( varname, path, existenceOptional=False):
     return ":".join(pathList)
         
 def discover( varname ):
+    devRoot = os.getenv('RPATH_DEV_ROOT')
+
     if not discoveryDefaults.has_key(varname):
         sys.exit("Don't know how to auto-discover variable %r" % (varname,))
     varDict = discoveryDefaults[varname]
@@ -265,19 +279,26 @@ def discover( varname ):
             sys.exit("Variable %r is configured to be %r but the "
                     "path does not exist!" % (varname, varDict['absPath']))
 
-    forestName, treeName = varDict['path'].split('$VERSION/', 1)
-
-    # 2. we look in the one level up from the existing repo
-    # (this handles forest and simple repos that live next to each other)
-    thisTree = getMercurialRoot()
-    if thisTree:
-        thisForest = os.path.dirname(thisTree)
-        path = os.path.join(thisForest, treeName)
-        if os.path.exists(path):
-            return path
-
+    l = varDict['path'].split('$VERSION/', 1)
+    if len(l) == 2:
+        (forestName, treeName) = l
+        # 2. we look in the one level up from the existing repo
+        # (this handles forest and simple repos that live next to each other)
+        thisTree = getMercurialRoot()
+        if thisTree:
+            thisForest = os.path.dirname(thisTree)
+            path = os.path.join(thisForest, treeName)
+            if os.path.exists(path):
+                return path
+    else:
+        treeName = l[0]
+        #2.1. we see if the give path is valid relitive to the repo root
+        if devRoot:
+            path = os.path.join(devRoot, treeName)
+            if os.path.exists(path):
+                return path
+        return None
     # 3. we drill down from the top and prefer trunk to numbered versions
-    devRoot = os.getenv('RPATH_DEV_ROOT')
     forestPath = None
     if devRoot:
         forestPath = os.path.join(devRoot, forestName)
@@ -292,12 +313,12 @@ def discover( varname ):
                     if f.lower() == 'trunk':
                         selectedVer = f
                         break
-                    
+
                     try:
                         vers[float(f)] = f
                     except ValueError:
                         pass
-            
+
             if not selectedVer:
                 maxVersion = max(vers.keys())
                 selectedVer = vers[maxVersion]
