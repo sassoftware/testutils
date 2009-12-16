@@ -21,6 +21,10 @@
 # See [GDR 2001-12-04a] for the command-line interface, programmatic
 # interface and limitations.  See [GDR 2001-12-04b] for requirements and
 # design.
+#
+# Portions (C) 2009 rPath, Inc. Those portions are licensed under the Python
+# Software Foundation license agreement, which can be found at www.python.org.
+#
 
 """Usage:
 

@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#
+# (C) 2009 rPath, Inc
+#
+# This file is licensed under the Python Software Foundation
+# license agreement, which can be found at www.python.org.
+#
 # reads in a patch and outputs the modified lines for each file in this format:
 # path
 # <lineno> <lineno>

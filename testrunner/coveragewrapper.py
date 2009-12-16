@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#
+# (C) 2009 rPath, Inc
+#
+# This file is licensed under the Python Software Foundation
+# license agreement, which can be found at www.python.org.
+#
 import imp
 import os
 import sys
