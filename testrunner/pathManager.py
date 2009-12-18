@@ -30,6 +30,12 @@ discoveryDefaults = {
         'CREST_TEST_PATH': {
             'provides':'crest',
             'path':'products/rbuilder/$VERSION/crest-test'},
+        'RBCLIENT_PATH': {
+            'provides':'rbclient',
+            'path':'products/rbuild/$VERSION/rbuilder-client'},
+        'RBCLIENT_TEST_PATH': {
+            'provides':'rbiclient_test',
+            'path':'products/rbuild/$VERSION/rbuilder-client-private'},
         'RBUILD_PATH': {
             'provides':'rbuild',
             'path':'products/rbuild/$VERSION/rbuild'},
