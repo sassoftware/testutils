@@ -19,6 +19,10 @@ class TestSuite(object):
     suiteClass = unittest.TestSuite
 
     setupDone = False
+
+    execPathVarNames = [
+    ]
+
     def setup(self):
         if self.setupDone:
             return
@@ -27,12 +31,17 @@ class TestSuite(object):
             self.__class__.pathManager = pathManager
 
         self.setupTestDir()
+        self.setupDefaultVars()
         self.setupPaths()
         self.setupModules()
         self.setupCoverageHooks()
         self.setupSpecific()
 
         self.setupDone = True
+
+    def setupDefaultVars(self):
+        for varname in self.execPathVarNames:
+            self.pathManager.addExecPath(varname)
 
     def setupTestDir(self):
         testPath = self.getTestTopDir()
