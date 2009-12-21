@@ -172,7 +172,7 @@ class SystemPathTemplate(object):
 
     def evaluate(self):
         value = getPath(self.variable)
-        if 'site-pacakges' in value:
+        if 'site-packages' in value:
             return self.returnTrue
         return self.returnFalse
 
