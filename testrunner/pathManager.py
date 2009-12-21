@@ -164,6 +164,43 @@ discoveryDefaults = {
             'path':'infra/selfserve/selfserve_test/'},
         }
 
+class SystemPathTemplate(object):
+    def __init__(self, variable, returnTrue, returnFalse):
+        self.variable = variable
+        self.returnTrue = returnTrue
+        self.returnFalse = returnFalse
+
+    def evaluate(self):
+        value = getPath(self.variable)
+        if 'site-pacakges' in value:
+            return self.returnTrue
+        return self.returnFalse
+
+resourceDefaults = dict(
+    CONARY_ARCHIVE_PATH = dict(
+        variables = [ 'CONARY_TEST_PATH' ],
+        template = "%(CONARY_TEST_PATH)s/archive",
+    ),
+    RMAKE_ARCHIVE_PATH = dict(
+        variables = [ 'RMAKE_TEST_PATH' ],
+        template = "%(RMAKE_TEST_PATH)s/rmake_test/archive",
+    ),
+    RBUILD_ARCHIVE_PATH = dict(
+        variables = [ 'RBUILD_TEST_PATH' ],
+        template = "%(RBUILD_TEST_PATH)s/rbuild_test/archive",
+    ),
+    RBUILD_PLUGIN_PATH = dict(
+        variables = [ 'RBUILD_PATH' ],
+        template = SystemPathTemplate('RBUILD_PATH',
+            '/usr/share/rbuild/plugins',
+            '%(RBUILD_PATH)s/plugins'),
+    ),
+    RMAKE_PLUGIN_PATHS = dict(
+        variables = [ 'RMAKE_PATH' ],
+        template = SystemPathTemplate('RMAKE_PATH',
+            [ '/usr/share/rmake/plugins' ], [ '%(RMAKE_PATH)s/rmake_plugins' ]),
+    ),
+)
 
 def getPath( varname ):
     v = os.getenv(varname)
@@ -234,7 +271,7 @@ def addExecPath(varname, path=None, isTestRoot=False):
 
     return ":".join(pathList)
 
-def addResourcePath( varname, path, existenceOptional=False):
+def addResourcePath( varname, path=None, existenceOptional=False):
     varval = os.getenv(varname)
     if type(path) == str:
         path = path.split(":")
@@ -260,16 +297,29 @@ def addResourcePath( varname, path, existenceOptional=False):
         if not pathList:
             sys.stderr.write("Path '%s' provided for '%s' contains no valid paths.\n" % (path,varname) )
             sys.exit(-1)
-
-        # we have a valid path so update the enviro
-        path = ":".join(pathList)            
-        os.environ[varname] = path
     else:
-        sys.stderr.write("'%s' was not set and '%s' does not exist!\n" % (varname,path) )
+        pathList = discoverResource(varname)
+
+    # we have a valid path so update the enviro
+    path = ":".join(pathList)
+    os.environ[varname] = path
+    return path
+
+def discoverResource(varname):
+    if varname not in resourceDefaults:
+        sys.stderr.write("'%s' could not be auto-discovered!\n" % (varname,) )
         sys.exit(-1)
-    
-    return ":".join(pathList)
-        
+    discovered = resourceDefaults[varname]
+    # Grab the variables needed for computing the value
+    varDict = dict( (v, getPath(v)) for v in discovered['variables'])
+    template = discovered['template']
+    if isinstance(template, SystemPathTemplate):
+        template = template.evaluate()
+    # Expand template values
+    if isinstance(template, basestring):
+        return [ template % varDict ]
+    return [ x % varDict for x in template ]
+
 def discover( varname ):
     devRoot = os.getenv('RPATH_DEV_ROOT')
 

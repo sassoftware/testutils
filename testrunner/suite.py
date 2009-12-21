@@ -20,8 +20,8 @@ class TestSuite(object):
 
     setupDone = False
 
-    execPathVarNames = [
-    ]
+    execPathVarNames = []
+    resourceVarNames = []
 
     def setup(self):
         if self.setupDone:
@@ -42,6 +42,8 @@ class TestSuite(object):
     def setupDefaultVars(self):
         for varname in self.execPathVarNames:
             self.pathManager.addExecPath(varname)
+        for varname in self.resourceVarNames:
+            self.pathManager.addResourcePath(varname)
 
     def setupTestDir(self):
         testPath = self.getTestTopDir()
@@ -96,7 +98,6 @@ class TestSuite(object):
                 if hasattr(self, 'getCoverageExclusions'):
                     return self.getCoverageExclusions(slf, environ)
                 return testhelp.TestSuiteHandler.getCoverageExclusions(slf, environ)
-
         handler = Handler(individual=individual)
 
         if argv is None:
