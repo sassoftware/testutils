@@ -98,6 +98,9 @@ class TestSuite(object):
                 if hasattr(self, 'getCoverageExclusions'):
                     return self.getCoverageExclusions(slf, environ)
                 return testhelp.TestSuiteHandler.getCoverageExclusions(slf, environ)
+            def sortTests(slf, tests):
+                return self.sortTests(tests)
+
         handler = Handler(individual=individual)
 
         if argv is None:
