@@ -80,6 +80,25 @@ class TestSuite(object):
     def sortTests(self, tests):
         return tests
 
+    def sortTestsByType(self, tests, bucketOrder = None):
+        if bucketOrder is None:
+            bucketOrder = [ 'smoketest', 'unit_test', 'functionaltest' ]
+        else:
+            bucketOrder = bucketOrder[:]
+        # Everything else
+        bucketOrder.append(None) 
+        buckets = dict((x, []) for x in bucketOrder)
+
+        for test in tests:
+            # Try to extract the bucket name
+            bucketName = test.split('.')[1 - self.topLevelStrip]
+            l = buckets.get(bucketName, buckets[None])
+            l.append(test)
+        tests = []
+        for bucketName in bucketOrder:
+            tests.extend(sorted(buckets[bucketName]))
+        return tests
+
     def main(self, argv = None, individual = True):
         self.__class__.individual = individual
         self.setup()
