@@ -125,8 +125,8 @@ class TestCase(unittest.TestCase):
     def __init__(self, methodName):
         unittest.TestCase.__init__(self, methodName)
         self.logFilter = LogFilter()
-        self.owner = pwd.getpwuid(os.getuid())[0]
-        self.group = grp.getgrgid(os.getgid())[0]
+        self.owner = os_utils.effectiveUser
+        self.group = os_utils.effectiveGroup
 
         import testrunner.pathManager
         self.mockObjects = []

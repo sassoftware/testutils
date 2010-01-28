@@ -10,7 +10,6 @@ import tempfile
 import time
 import subprocess
 import sys
-import pwd
 
 from testrunner import testhelp
 from testutils.base_server import BaseServer
@@ -374,7 +373,7 @@ class PostgreSQLServer(SQLServer):
     driver = "postgresql"
     rootdb = "postgres"
     def __init__(self, path, dbClass = RepositoryDatabase):
-        self.user = pwd.getpwuid(os.getuid())[0]
+        self.user = 'testutils'
         SQLServer.__init__(self, path, dbClass)
         self.conn = "%s@localhost.localdomain:%d" % (self.user, self.port)
         self.init = "create database %s encoding 'UTF8'"

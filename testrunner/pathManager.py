@@ -110,6 +110,9 @@ discoveryDefaults = {
             'path':'products/rbuilder/$VERSION/rbm/raaplugins'},
 
         # Common libraries
+        'JOB_PATH': {
+            'provides':'rpath_job',
+            'path':'products/rbuilder/$VERSION/rpath-job'},
         'PYOVF_PATH': {
             'provides':'pyovf',
             'path':'products/rbuilder/$VERSION/pyovf'},

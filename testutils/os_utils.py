@@ -5,8 +5,14 @@ import subprocess
 import sys
 
 # Running user
-effectiveUser = pwd.getpwuid(os.getuid())[0]
-effectiveGroup = grp.getgrgid(os.getgid())[0]
+effectiveUser = os.getuid()
+effectiveGroup = os.getgid()
+try:
+    effectiveUser = pwd.getpwuid(effectiveUser)[0]
+    effectiveGroup = grp.getgrgid(effectiveGroup)[0]
+except KeyError:
+    effectiveUser = str(effectiveUser)
+    effectiveGroup = str(effectiveGroup)
 
 def listSemaphores():
     p = subprocess.Popen(["/usr/bin/ipcs", "-s", "-c"],
@@ -14,7 +20,7 @@ def listSemaphores():
     semIds = set()
     for line in p.stdout:
         line = [x for x in line.split() if x]
-        if not line or not line[0].isdigit:
+        if not line or not line[0].isdigit():
             continue
         if line[2] != effectiveUser:
             continue
