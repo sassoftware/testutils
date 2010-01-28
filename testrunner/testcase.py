@@ -1,3 +1,4 @@
+import copy
 import errno
 import fcntl
 import gc
@@ -146,9 +147,25 @@ class TestCase(unittest.TestCase):
         finally:
             _strptime._cache_lock.release()
 
+        # save the original stdio fds for later
+        self.savedStdin = sys.stdin
+        self.savedStdout = sys.stdout
+        self.savedStderr = sys.stderr
+
     def tearDown(self):
         from conary.lib import log
         log.setVerbosity(self._logLevel)
+
+        # reattached the original stdio fds after the test has completed
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except:
+            pass
+        sys.stdin = self.savedStdin
+        sys.stdout = self.savedStdout
+        sys.stderr = self.savedStderr
+
 
     def mock(self, parent, selector, replacement):
         # Extract the current value
