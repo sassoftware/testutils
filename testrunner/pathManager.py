@@ -131,6 +131,9 @@ discoveryDefaults = {
         'RESTLIB_TEST_PATH': {
             'provides':'restlib_test',
             'path':'products/rbuilder/$VERSION/restlib-private'},
+        'SMARTFORM_PATH' : {
+            'provides':'smartform',
+            'path':'products/rbuilder/$VERSION/smartform/py/smartform'},
         'STORAGE_PATH': {
             'provides':'rpath_storage',
             'path':'products/rbuilder/$VERSION/rpath-storage'},
