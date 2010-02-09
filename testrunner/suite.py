@@ -41,9 +41,17 @@ class TestSuite(object):
 
     def setupDefaultVars(self):
         for varname in self.execPathVarNames:
-            self.pathManager.addExecPath(varname)
+            existenceOptional = False
+            if isinstance(varname,tuple):
+                varname,existenceOptional = varname
+            self.pathManager.addExecPath(varname,
+                                         existenceOptional=existenceOptional)
         for varname in self.resourceVarNames:
-            self.pathManager.addResourcePath(varname)
+            existenceOptional = False
+            if isinstance(varname,tuple):
+                varname,existenceOptional = varname
+            self.pathManager.addResourcePath(varname,
+                                         existenceOptional=existenceOptional)
 
     def setupTestDir(self):
         testPath = self.getTestTopDir()

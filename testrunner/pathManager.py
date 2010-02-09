@@ -229,7 +229,7 @@ def getCoveragePath(varname):
     v = getPath(varname)
     return os.path.join(v, varDict['provides'])
 
-def addExecPath(varname, path=None, isTestRoot=False):
+def addExecPath(varname, path=None, isTestRoot=False, existenceOptional=False):
     varval = os.getenv(varname)
     if type(path) == str:
         path = path.split(":")
@@ -241,10 +241,12 @@ def addExecPath(varname, path=None, isTestRoot=False):
                 # env var already exists so we just update the paths
                 updatePaths( p )
                 pathList.append(p)
-            else:
+            elif not existenceOptional:
                 sys.stderr.write("'%s' was set but '%s' does not exist!\n" 
                                  % (varname,p) )
                 sys.exit(-1)
+            else:
+                return ""
     elif path:
         for p in path:
             p = os.path.abspath(p)
@@ -255,7 +257,7 @@ def addExecPath(varname, path=None, isTestRoot=False):
             else:
                 sys.stderr.write("WARNING: Path specified for '%s' contains '%s' but it does not exist. "
                                  "Ignoring\n" % (varname,p) )
-        if not pathList:
+        if not pathList and not existenceOptional:
             sys.stderr.write(
                 "Path '%s' provided for '%s' contains no valid paths.\n"
                 % (path,varname) )
@@ -265,7 +267,7 @@ def addExecPath(varname, path=None, isTestRoot=False):
         os.environ[varname] = ":".join(pathList)
     else:
         # we have to discover the path
-        path = discover(varname)
+        path = discover(varname,discoveryOptional=existenceOptional)
         if path:
             os.environ[varname] = path
             pathList.append(path)
@@ -326,7 +328,7 @@ def discoverResource(varname):
         return [ template % varDict ]
     return [ x % varDict for x in template ]
 
-def discover( varname ):
+def discover( varname, discoveryOptional = False ):
     devRoot = os.getenv('RPATH_DEV_ROOT')
 
     if not discoveryDefaults.has_key(varname):
@@ -337,7 +339,7 @@ def discover( varname ):
     if varDict.has_key( 'absPath' ):
         if os.path.exists( varDict['absPath'] ):
             return varDict['absPath']
-        else:
+        elif not discoveryOptional:
             sys.exit("Variable %r is configured to be %r but the "
                     "path does not exist!" % (varname, varDict['absPath']))
 
@@ -404,7 +406,10 @@ def discover( varname ):
                 path = os.path.dirname(path)
             return path
 
-    print >> sys.stderr, "Could not auto-discover variable", varname
+    if not discoveryOptional:
+        print >> sys.stderr, "Could not auto-discover variable", varname
+    else:
+        return ""
     if not devRoot:
         print >> sys.stderr, ("HINT: Try setting RPATH_DEV_ROOT to the root "
                 "of your checkout tree.")
@@ -415,6 +420,7 @@ def discover( varname ):
         suggest = os.path.join(forestPath, 'trunk', treeName)
         print >> sys.stderr, ("HINT: Try checking out %s , if it exists."
                 % (suggest,))
+
     sys.exit(1)
 
 
