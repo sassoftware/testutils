@@ -133,7 +133,10 @@ discoveryDefaults = {
             'path':'products/rbuilder/$VERSION/restlib-private'},
         'SMARTFORM_PATH' : {
             'provides':'smartform',
-            'path':'products/rbuilder/$VERSION/smartform/py/smartform'},
+            # The testsuite will get run as part of building the smartform
+            # package, so use a path relative to testsuite.py. This will
+            # probably have to be refactored if this is a common pattern
+            'absPath':'../smartform'},
         'STORAGE_PATH': {
             'provides':'rpath_storage',
             'path':'products/rbuilder/$VERSION/rpath-storage'},
