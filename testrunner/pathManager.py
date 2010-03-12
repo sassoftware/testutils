@@ -339,12 +339,13 @@ def discover( varname, discoveryOptional = False ):
     varDict = discoveryDefaults[varname]
 
     # 1. if there's a absolute path for this variable, we just use it
-    if varDict.has_key( 'absPath' ):
-        if os.path.exists( varDict['absPath'] ):
-            return varDict['absPath']
+    absPath = varDict.get('absPath')
+    if absPath:
+        if os.path.exists(absPath):
+            return absPath
         elif not discoveryOptional:
             sys.exit("Variable %r is configured to be %r but the "
-                    "path does not exist!" % (varname, varDict['absPath']))
+                    "path does not exist!" % (varname, absPath))
 
     l = varDict['path'].split('$VERSION/', 1)
     if len(l) == 2:
