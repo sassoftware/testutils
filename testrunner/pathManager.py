@@ -16,6 +16,9 @@ import stat
 
 discoveryDefaults = {
         # Conary, etc.
+        'CONARY_CIM_PATH' : {
+            'path' : 'products/conary-cim/$VERSION/conary-cim',
+        },
         'CONARY_POLICY_PATH': {
             'absPath':'/usr/lib/conary/policy'},
         'CONARY_PATH': {
