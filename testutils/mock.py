@@ -414,14 +414,36 @@ def unmockAll():
         setattr(obj, attr, getattr(obj, attr)._mock.origValue)
     _mocked[:] = []
 
+class MockParams(object):
+    __slots__ = [ 'params', 'kwparams' ]
+
+    def __init__(self, *params, **kwparams):
+        self.params = params
+        self.kwparams = kwparams
+
 def mockClass(class_, *args, **kw):
+    """
+    Create a mock class that inherits from the original class.
+    You can configure the instance's _mock member in the initializer,
+    by prefixing the functions with mock_.
+    For instance:
+
+    mA = mockClass(A, mock_set = MockParams(a = 3))
+    a = mA()
+    assert a.a == 3
+    """
     commands = []
     runInit = kw.pop('mock_runInit', False)
     for k, v in kw.items():
         if k.startswith('mock_'):
-            if not isinstance(v, (list, tuple)):
-                v = [v]
-            commands.append((k[5:], v))
+            params = v
+            kwparams = {}
+            if isinstance(v, MockParams):
+                params = v.params
+                kwparams = v.kwparams
+            elif not isinstance(v, (list, tuple)):
+                params = [v]
+            commands.append((k[5:], params, kwparams))
             kw.pop(k)
     class _MockClass(MockInstance, class_):
         def __init__(self, *a, **k):
@@ -430,8 +452,8 @@ def mockClass(class_, *args, **kw):
                 self._mock.enableByDefault()
                 class_.__init__(self, *a, **k)
             self._mock.called(a, k)
-            for command, params in commands:
-                getattr(self._mock, command)(*params)
+            for command, params, kwparams in commands:
+                getattr(self._mock, command)(*params, **kwparams)
 
     return _MockClass
 
