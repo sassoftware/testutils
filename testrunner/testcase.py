@@ -1,3 +1,4 @@
+import collections
 import copy
 import errno
 import fcntl
@@ -544,10 +545,23 @@ class TestCase(unittest.TestCase):
         # No children, compare the text
         return node1.text == node2.text
 
+    @classmethod
+    def _removeTail(self, node):
+        stack = collections.deque([ node ])
+        while stack:
+            n = stack.pop()
+            n.tail = None
+            children = n.getchildren()
+            if children:
+                # We don't accept mixed content
+                n.text = None
+            stack.extend(n.getchildren())
+        return node
+
     def assertXMLEquals(self, first, second):
         from lxml import etree
-        tree0 = etree.fromstring(first.strip())
-        tree1 = etree.fromstring(second.strip())
+        tree0 = self._removeTail(etree.fromstring(first.strip()))
+        tree1 = self._removeTail(etree.fromstring(second.strip()))
         if not self._nodecmp(tree0, tree1):
             data0 = etree.tostring(tree0, pretty_print=True, with_tail=False)
             data1 = etree.tostring(tree1, pretty_print=True, with_tail=False)
