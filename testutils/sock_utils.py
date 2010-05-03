@@ -75,20 +75,22 @@ def findPorts(num=1, closeSockets=True):
     return _portFinder.findPorts(num, closeSockets=closeSockets)
 
 
-def tryConnect(host, port, count=100, interval=0.1, logFile=None):
+def tryConnect(host, port, count=100, interval=0.1, logFile=None,
+               backoff=0.05, maxInterval=1):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Setting SO_REUSEADDR lets the kernel recycle dead ports
     # immediately, which is polite since we're making so many connections.
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    for _ in range(count):
+    for n in range(count):
         try:
             sock.connect((host, port))
             sock.close()
             return
         except socket.error, error:
             if error.args[0] == errno.ECONNREFUSED:
-                time.sleep(interval)
+                i = min(interval + n * backoff,maxInterval)
+                time.sleep(i)
                 continue
             raise
     if logFile:
