@@ -400,8 +400,8 @@ def discover( varname, discoveryOptional = False ):
         moduleName = varDict['provides']
         try:
             module = __import__(moduleName)
-        except ImportError:
-            pass
+        except ImportError, e:
+            print "Trying to import ", moduleName, " resulted in: ", str(e)
         else:
             path = module.__file__
             if os.path.basename(path).rsplit('.', 1)[0] == '__init__':
