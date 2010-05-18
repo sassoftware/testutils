@@ -45,6 +45,9 @@ discoveryDefaults = {
         'RBUILD_TEST_PATH': {
             'provides':'rbuild_test',
             'path':'products/rbuild/$VERSION/rbuild-private'},
+        'REPODATA_PATH' : {
+            'provides':'repodata',
+            'path':'products/rubilder/$VERSION/repodata'},
         'RMAKE_PATH': {
             'provides':'rmake',
             'path':'products/rmake/$VERSION/rmake'},
