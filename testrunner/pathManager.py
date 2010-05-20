@@ -114,6 +114,9 @@ discoveryDefaults = {
         'RBM_RAA_PLUGINS_PATH': {
             'provides':'rPath',
             'path':'products/rbuilder/$VERSION/rbm/raaplugins'},
+        'RACTIVATE_PATH': {
+            'provides':'ractivate',
+            'path':'products/ractivate/$VERSION/ractivate'},
 
         # Common libraries
         'JOB_PATH': {
