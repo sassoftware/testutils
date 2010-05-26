@@ -307,6 +307,7 @@ class TestCase(unittest.TestCase):
 
     def captureOutput(self, func, *args, **kwargs):
         returnException = kwargs.pop('_returnException', False)
+        removeBrokenPipeErrors = kwargs.pop('_removeBokenPipeErrors', False)
         sys.stdout.flush()
         sys.stderr.flush()
         (outfd, outfn) = tempfile.mkstemp()
@@ -350,6 +351,12 @@ class TestCase(unittest.TestCase):
         f = os.fdopen(errfd, 'r')
         serr = f.read()
         f.close()
+
+        if removeBrokenPipeErrors:
+            sout = '\n'.join([x for x in sout.split('\n') if x !=
+                           'error: [Errno 32] Broken pipe'])
+            serr = '\n'.join([x for x in serr.split('\n') if x !=
+                           'error: [Errno 32] Broken pipe'])
 
         if e:
             return (e, sout + serr)
