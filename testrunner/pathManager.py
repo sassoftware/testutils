@@ -45,6 +45,9 @@ discoveryDefaults = {
         'RBUILD_TEST_PATH': {
             'provides':'rbuild_test',
             'path':'products/rbuild/$VERSION/rbuild-private'},
+        'REPODATA_PATH' : {
+            'provides':'repodata',
+            'path':'products/rubilder/$VERSION/repodata'},
         'RMAKE_PATH': {
             'provides':'rmake',
             'path':'products/rmake/$VERSION/rmake'},
@@ -111,6 +114,9 @@ discoveryDefaults = {
         'RBM_RAA_PLUGINS_PATH': {
             'provides':'rPath',
             'path':'products/rbuilder/$VERSION/rbm/raaplugins'},
+        'RACTIVATE_PATH': {
+            'provides':'ractivate',
+            'path':'products/ractivate/$VERSION/ractivate'},
 
         # Common libraries
         'JOB_PATH': {
