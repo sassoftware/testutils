@@ -1,3 +1,17 @@
+#
+# Copyright (c) 2010 rPath, Inc.
+#
+# This program is distributed under the terms of the Common Public License,
+# version 1.0. A copy of this license should have been distributed with this
+# source file in a file called LICENSE. If it is not present, the license
+# is always available at http://www.rpath.com/permanent/licenses/CPL-1.0.
+#
+# This program is distributed in the hope that it will be useful, but
+# without any warranty; without even the implied warranty of merchantability
+# or fitness for a particular purpose. See the Common Public License for
+# full details.
+
+
 import fcntl
 import inspect
 import itertools
@@ -232,7 +246,7 @@ class _TestSuiteHandler(object):
     ''' % (results.testsRun, results.skippedTests,
           (results.erroredTests + results.failedTests)))
 
-    def _getTestsToRun(self, argList=[]):
+    def _getTestsToRun(self, argList=[], split=None):
         topdir = os.path.realpath(pathManager.getPath('TEST_PATH'))
         tests = []
         cwd = os.getcwd()
@@ -280,6 +294,13 @@ class _TestSuiteHandler(object):
                 s = os.path.realpath(s)
                 s = s[len(topdir) + 1:].replace('/', '.')
             tests.append(s)
+
+        if split:
+            a, b = split.split('/')
+            b = int(b)
+            a = int(a) % b
+            tests.sort()
+            tests = tests[a::b]
 
         return tests
 
@@ -343,7 +364,7 @@ class _TestSuiteHandler(object):
                                  argv=[sys.argv[0]] + args)
             results = program.results
         else:
-            tests = self._getTestsToRun(args)
+            tests = self._getTestsToRun(args, options.split)
             tests = self.sortTests(tests)
             for test in tests:
                 try:
@@ -420,6 +441,8 @@ class _TestSuiteHandler(object):
                           metavar='PREFIX')
         parser.add_option('--always-succeed', action='store_true',
                 help="Return a success exit code even if tests failed")
+        parser.add_option('--split', metavar="M/N",
+                help="Run only a deterministic fraction of tests.")
         return parser
 
     def parseOptions(self, parser, argv):
