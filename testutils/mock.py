@@ -1,7 +1,10 @@
 #!/usr/bin/python2.4
 # -*- mode: python -*-
 #
-# Copyright (c) 2006-2007 rPath, Inc.  All Rights Reserved.
+# Copyright (c) 2006-2008,2010 rPath, Inc.  All Rights Reserved.
+#
+# This file is licensed under the Python Software Foundation
+# license agreement, which can be found at www.python.org.
 """
 Mock object implementation.
 

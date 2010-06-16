@@ -69,7 +69,7 @@ class CoverageWrapper(object):
         missingSortKey = lambda x: (len(x[2]), len(x[1]))
         sortFn = lambda a,b: cmp(missingSortKey(a), missingSortKey(b))
         coverage = self.getCoverage()
-        coverage.report(files, show_missing=False, sortFn=sortFn, 
+        coverage.report(files, show_missing=False, #sortFn=sortFn, 
                         baseDirs=self._baseDirs)
 
     def writeAnnotatedFiles(self, files):
