@@ -3,8 +3,8 @@
 #
 # Copyright (c) 2006-2008,2010 rPath, Inc.  All Rights Reserved.
 #
-# This file is licensed under the Python Software Foundation
-# license agreement, which can be found at www.python.org.
+# This file is licensed under the MIT License, which is available from
+# http://www.opensource.org/licenses/mit-license.php
 """
 Mock object implementation.
 
