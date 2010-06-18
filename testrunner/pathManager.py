@@ -122,6 +122,9 @@ discoveryDefaults = {
         'JOB_PATH': {
             'provides':'rpath_job',
             'path':'products/rbuilder/$VERSION/rpath-job'},
+        'MODELS_PATH': {
+            'provides':'rpath_models',
+            'path':'products/rbuilder/$VERSION/rpath-models'},
         'PYOVF_PATH': {
             'provides':'pyovf',
             'path':'products/rbuilder/$VERSION/pyovf'},
