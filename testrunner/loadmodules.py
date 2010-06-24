@@ -159,7 +159,6 @@ class ModuleLoader(object):
                     subdirs.append(file)
         if pythonFiles:
             sys.path.insert(0, modulePath)
-            return
         for subdir in subdirs:
             pythonPathSubDir = '%s/%s' % (pythonPath, 
                                          os.path.basename(subdir))
