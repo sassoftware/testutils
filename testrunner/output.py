@@ -20,7 +20,7 @@ class TestTimer(object):
                 self.times = {}
         else:
             self.times = {}
-        self.file = file
+        self.file = os.path.abspath(file)
 
         self.toRun = set()
         testSuites = [testSuite]
