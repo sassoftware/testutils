@@ -16,7 +16,7 @@ class BaseServer(object):
         raise NotImplementedError
 
     def reset(self):
-        raise NotImplementedError
+        pass
 
     def isStarted(self):
         raise NotImplementedError

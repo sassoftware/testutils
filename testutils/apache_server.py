@@ -66,7 +66,7 @@ class ApacheServer(base_server.BaseServer):
 
     def reset(self):
         self._reset()
-        base_server.BaseServer.reset(self)
+        super(ApacheServer, self).reset()
 
     def _getServerFileName(self):
         for fname in [ '/usr/sbin/httpd', '/usr/sbin/httpd2',
