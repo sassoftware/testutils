@@ -395,14 +395,17 @@ def mockFunction(function, returnValue=_NO_RETURN_VALUE):
 def mock(obj, attr, returnValue=_NO_RETURN_VALUE):
     m = MockObject()
     if hasattr(obj, attr):
+        found = False
         if inspect.isclass(obj):
             # Looks like a class; try to get the underlying property
             # instead of its "bound" value. This will preserve static
             # methods and other magical items.
-            origValues = dict((x[0], x[3]) for x in
-                inspect.classify_class_attrs(obj))
-            m._mock.origValue = origValues[attr]
-        else:
+            for cls in inspect.getmro(obj):
+                if attr in cls.__dict__:
+                    found = True
+                    m._mock.origValue = cls.__dict__[attr]
+                    break
+        if not found:
             # Not a class so just grab the attribute.
             m._mock.origValue = getattr(obj, attr)
     setattr(obj, attr, m)
