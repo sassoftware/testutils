@@ -91,6 +91,11 @@ class MockObject(object):
             return object.__getattribute__(self, key)
         if key in self.__dict__:
             return self.__dict__[key]
+        if key[:2] == '__' and key[-2:] == '__':
+            # Don't mock slot attributes. esp. __bases__, which makes it look
+            # like this is a class.
+            return object.__getattribute__(self, key)
+
         m = self._mock.getCalled(key)
         self.__dict__[key] = m
         return m
