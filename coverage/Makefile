@@ -16,8 +16,6 @@ clean:
 	rm -f *.o *.so *.pyc *~
 
 install: all default-install
-	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(coveragedir)', quiet=1)"
-	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(coveragedir)', ddir='$(coveragedir)', quiet=1)"
 	cp -a coverage.py $(DESTDIR)/$(sitedir)/coverage.py
 	install -m 755 _coverage.so $(DESTDIR)$(coveragedir)/
 

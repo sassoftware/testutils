@@ -19,7 +19,7 @@ all-subdirs:
 
 export TOPDIR = $(shell pwd)
 
-SUBDIRS=testrunner testutils coverage
+SUBDIRS = testrunner testutils twisted coverage
 
 extra_files = \
 	Make.rules 		\
@@ -34,6 +34,7 @@ dist_files = $(extra_files)
 subdirs: default-subdirs
 
 install: install-subdirs
+	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(sitedir)', ddir='$(sitedir)', quiet=1)"
 
 clean: clean-subdirs default-clean
 
