@@ -1,1 +1,2 @@
-^.*\.(so|pyc|pyo)$
+^.*\.(so|pyc|pyo|orig|rej)$
+^twisted/plugins/dropin.cache$
