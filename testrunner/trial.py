@@ -44,7 +44,10 @@ class JUnitReporter(reporter.VerboseTextReporter):
     def startTest(self, test):
         super(JUnitReporter, self).startTest(test)
 
-        classname, testname = test.id().rsplit('.', 1)
+        if '.' in test.id():
+            classname, testname = test.id().rsplit('.', 1)
+        else:
+            classname, testname = '', test.id()
         self.et = ET.Element('testcase', {
             'classname': classname,
             'name': testname,
