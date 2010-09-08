@@ -119,8 +119,48 @@ class LogFilter:
                  lambda actual, regexp: re.match(regexp, actual) is not None,
                  originalRecords = records)
 
+class MockMixIn(object):
+    def mock(self, parent, selector, replacement):
+        if not hasattr(self, 'mockObjects'):
+            self.mockObjects = []
+        # Extract the current value
+        if not hasattr(parent, selector):
+            # No current value
+            currval = (None, True)
+        elif isinstance(parent, (type, types.ClassType)):
+            # If this is a class, we need to be careful when we mock, since we
+            # could mock a parent's object
+            import inspect
+            defClasses = [ (x[2], x[3], x[1])
+                for x in inspect.classify_class_attrs(parent)
+                if x[0] == selector ]
+            # We've just extracted the class that defined the attribute and
+            # the real value
+            if defClasses[0][2] == 'static method':
+                replacement = staticmethod(replacement)
+            if defClasses[0][2] == 'class method':
+                replacement = classmethod(replacement)
+            if defClasses[0][0] != parent:
+                # We inherited this object from the parent
+                currval = (None, True)
+            else:
+                currval = (defClasses[0][1], False)
+        else:
+            currval = (getattr(parent, selector), False)
+        self.mockObjects.append((parent, selector, currval))
+        setattr(parent, selector, replacement)
 
-class TestCase(unittest.TestCase):
+    def unmock(self):
+        if not hasattr(self, 'mockObjects'):
+            return
+        while self.mockObjects:
+            parent, selector, (oldval, missing) = self.mockObjects.pop()
+            if missing:
+                delattr(parent, selector)
+            else:
+                setattr(parent, selector, oldval)
+
+class TestCase(unittest.TestCase, MockMixIn):
     TIMEZONE = 'Pacific/Fiji'
 
     def __init__(self, methodName):
@@ -167,42 +207,6 @@ class TestCase(unittest.TestCase):
         sys.stdout = self.savedStdout
         sys.stderr = self.savedStderr
 
-
-    def mock(self, parent, selector, replacement):
-        # Extract the current value
-        if not hasattr(parent, selector):
-            # No current value
-            currval = (None, True)
-        elif isinstance(parent, (type, types.ClassType)):
-            # If this is a class, we need to be careful when we mock, since we
-            # could mock a parent's object
-            import inspect
-            defClasses = [ (x[2], x[3], x[1])
-                for x in inspect.classify_class_attrs(parent)
-                if x[0] == selector ]
-            # We've just extracted the class that defined the attribute and
-            # the real value
-            if defClasses[0][2] == 'static method':
-                replacement = staticmethod(replacement)
-            if defClasses[0][2] == 'class method':
-                replacement = classmethod(replacement)
-            if defClasses[0][0] != parent:
-                # We inherited this object from the parent
-                currval = (None, True)
-            else:
-                currval = (defClasses[0][1], False)
-        else:
-            currval = (getattr(parent, selector), False)
-        self.mockObjects.append((parent, selector, currval))
-        setattr(parent, selector, replacement)
-
-    def unmock(self):
-        while self.mockObjects:
-            parent, selector, (oldval, missing) = self.mockObjects.pop()
-            if missing:
-                delattr(parent, selector)
-            else:
-                setattr(parent, selector, oldval)
 
     def _expectedFdLeak(self, fd):
         if not hasattr(self, 'openFds'):
