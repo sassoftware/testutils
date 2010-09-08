@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import os
+import sys
+
+maybeRoot = os.path.dirname(os.path.dirname(__file__))
+if os.path.exists(os.path.join(maybeRoot, 'testrunner', 'suite.py')):
+    # The cwd is probably the root of the test tree, so insert that first.
+    sys.path.insert(0, '.')
+    sys.path.insert(0, maybeRoot)
+
+from testrunner import trial
+sys.exit(trial.main())

@@ -19,7 +19,7 @@ all-subdirs:
 
 export TOPDIR = $(shell pwd)
 
-SUBDIRS = testrunner testutils twisted coverage
+SUBDIRS = testrunner testutils twisted coverage scripts
 
 extra_files = \
 	Make.rules 		\

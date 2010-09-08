@@ -12,7 +12,10 @@
 # full details.
 #
 
+import sys
 from twisted.python import reflect
+from twisted.python import usage
+from twisted.scripts import trial
 from twisted.trial import reporter
 try:
     from xml.etree import ElementTree as ET
@@ -105,3 +108,35 @@ class JUnitReporter(reporter.VerboseTextReporter):
 
     def _printSummary(self):
         print >> self.xmlstream, '</testsuite>'
+
+
+def main():
+    always_succeed = '--always-succeed' in sys.argv
+    if always_succeed:
+        sys.argv.remove('--always-succeed')
+
+    # Copypasta from twisted.scripts.trial.run, to tweak the return values
+    if len(sys.argv) == 1:
+        sys.argv.append("--help")
+    config = trial.Options()
+    try:
+        config.parseOptions()
+    except usage.error, ue:
+        raise SystemExit, "%s: %s" % (sys.argv[0], ue)
+    trial._initialDebugSetup(config)
+    trialRunner = trial._makeRunner(config)
+    suite = trial._getSuite(config)
+    if config['until-failure']:
+        test_result = trialRunner.runUntilFailure(suite)
+    else:
+        test_result = trialRunner.run(suite)
+    if config.tracer:
+        sys.settrace(None)
+        results = config.tracer.results()
+        results.write_results(show_missing=1, summary=False,
+                              coverdir=config.coverdir)
+    # Copypasta ends here
+    if always_succeed or test_result.wasSuccessful():
+        return 0
+    else:
+        return 2
