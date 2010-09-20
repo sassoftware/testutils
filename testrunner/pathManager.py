@@ -6,7 +6,7 @@
 import os
 import os.path
 import sys
-import stat
+
 # Search order:
 # 1. absolute path
 # 2. one dir up from the current repo (i.e. the same forest or parallel repo)
@@ -164,6 +164,12 @@ discoveryDefaults = {
         'XOBJ_TEST_PATH': {
             'provides':'xobjtest',
             'path':'products/rbuilder/$VERSION/xobj/py/test'},
+        'ROBJ_PATH': {
+            'provides':'robj',
+            'path':'products/rbuilder/$VERSION/robj'},
+        'ROBJ_TEST_PATH': {
+            'provides':'robjtest',
+            'path':'products/rbuilder/$VERSION/robj/test'},
 
         # Third-party libraries
         'BOTO_PATH': {
@@ -298,7 +304,7 @@ def addResourcePath( varname, path=None, existenceOptional=False):
 
     pathList = []
     if varval:
-        pl = varval.split(":")        
+        pl = varval.split(":")
         for p in pl:
             if os.path.exists( p ) or existenceOptional:
                 pathList.append(p)
@@ -454,7 +460,7 @@ def updatePaths( path ):
             sys.path.remove(path)
         sys.path.insert(1,path)
 
-    os.environ['PYTHONPATH'] = os.pathsep.join(pythonPath)    
+    os.environ['PYTHONPATH'] = os.pathsep.join(pythonPath)
 
 
 def getMercurialRoot(path='.'):
