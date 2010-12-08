@@ -58,7 +58,6 @@ discoveryDefaults = {
             'provides':'iconfig',
             'path':'products/iconfig/$VERSION/iconfig'},
         'ICONFIG_TEST_PATH': {
-            'provides':'iconfig_test',
             'path':'products/iconfig/$VERSION/iconfig/test'},
 
         # rBuilder
