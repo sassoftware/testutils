@@ -54,6 +54,9 @@ discoveryDefaults = {
         'RMAKE_TEST_PATH': {
             'provides':'rmake_test',
             'path':'products/rmake/$VERSION/rmake-private'},
+        'ICONFIG_PATH': {
+            'provides':'iconfig',
+            'path':'products/iconfig/$VERSION/iconfig'},
 
         # rBuilder
         'CATALOG_SERVICE_PATH': {
