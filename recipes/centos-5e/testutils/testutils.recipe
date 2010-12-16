@@ -1,0 +1,22 @@
+#
+# Copyright (c) 2007-2010 rPath, Inc.
+#
+# All rights reserved.
+#
+
+loadSuperClass('rpathpackage=centos.rpath.com@rpath:centos-5-common')
+class TestUtils(CPackageRecipe, RpathPackageRecipe):
+    name = 'testutils'
+    version = 'tip'
+
+    buildRequires = [
+        'python-conary:devel',
+      ]
+
+    def setup(r):
+        r.rpathSetup()
+        r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
+        r.MakeInstall('PYTHON=%(bindir)s/python'
+                      ' sitedir=%(sitepkgs)s')
+        #r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump', 
+        #          mode=0755)
