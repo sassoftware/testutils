@@ -1,5 +1,19 @@
+#
+# Copyright (c) 2011 rPath, Inc.
+#
+# This program is distributed under the terms of the Common Public License,
+# version 1.0. A copy of this license should have been distributed with this
+# source file in a file called LICENSE. If it is not present, the license
+# is always available at http://www.rpath.com/permanent/licenses/CPL-1.0.
+#
+# This program is distributed in the hope that it will be useful, but
+# without any warranty; without even the implied warranty of merchantability
+# or fitness for a particular purpose. See the Common Public License for
+# full details.
+#
+
+
 import collections
-import copy
 import errno
 import fcntl
 import gc
@@ -12,7 +26,7 @@ import pwd
 import tempfile
 import types
 import unittest
-import testhandler
+from testrunner.output import SkipTestException
 from testutils import os_utils
 
 class LogFilter:
@@ -608,3 +622,30 @@ class TestCaseWithWorkDir(TestCase):
         TestCase.tearDown(self)
         if not self.isIndividual():
             util.rmtree(self.workDir, ignore_errors = True)
+
+
+def todo(reason, whichException=None):
+    """Decorate a test that is expected to fail.
+
+    @todo("See #1234")
+    def mytest(self):
+        self.assertEquals(2 + 2, 5)
+    """
+    def decorate(func):
+        def wrapper(self, *args, **kwargs):
+            if whichException is None:
+                toCatch = self.failureException
+            else:
+                toCatch = whichException
+            try:
+                func(self, *args, **kwargs)
+            except toCatch:
+                raise SkipTestException("TODO: " + reason)
+            else:
+                raise self.failureException(
+                        'Test passed when it was expected to fail (%s)' %
+                        (reason,))
+        wrapper.func_name = func.func_name
+        wrapper.__doc__ = func.__doc__
+        return wrapper
+    return decorate
