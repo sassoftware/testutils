@@ -324,6 +324,8 @@ class TestCase(unittest.TestCase, MockMixIn):
         return sb1.st_mode == sb2.st_mode
 
     def captureOutput(self, func, *args, **kwargs):
+        if os.getenv('NO_CAPTURE'):
+            return func(*args, **kwargs), ''
         returnException = kwargs.pop('_returnException', False)
         removeBrokenPipeErrors = kwargs.pop('_removeBokenPipeErrors', False)
         sys.stdout.flush()
