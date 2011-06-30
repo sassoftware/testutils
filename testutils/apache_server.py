@@ -84,6 +84,9 @@ class ApacheServer(base_server.BaseServer):
         # too)
         oldSemaphores = os_utils.listSemaphores()
 
+        if getattr(self, 'socket', None):
+            self.socket.close()
+            self.socket = None
         self.serverpid = os.fork()
         if self.serverpid == 0:
             os.chdir('/')
