@@ -4,6 +4,7 @@ import shutil
 import signal
 import subprocess
 import time
+import traceback
 
 from testutils import base_server
 from testutils import os_utils
@@ -89,18 +90,23 @@ class ApacheServer(base_server.BaseServer):
             self.socket = None
         self.serverpid = os.fork()
         if self.serverpid == 0:
-            os.chdir('/')
-            #print "starting server in %s" % self.serverRoot
-            args = (self._serverFileName,
-                    "-X",
-                    "-d", self.serverRoot,
-                    "-f", "httpd.conf",
-                    "-C", 'DocumentRoot "%s"' % self.serverRoot)
-            # need to setpgrp because httpd stop kills the processgroup
-            os.setpgrp()
-            if hasattr(self, 'socket'):
-                self.socket.close()
-            os_utils.osExec(args)
+            try:
+                os.chdir('/')
+                #print "starting server in %s" % self.serverRoot
+                args = (self._serverFileName,
+                        "-X",
+                        "-d", self.serverRoot,
+                        "-f", "httpd.conf",
+                        "-C", 'DocumentRoot "%s"' % self.serverRoot)
+                # need to setpgrp because httpd stop kills the processgroup
+                os.setpgrp()
+                if getattr(self, 'socket', None):
+                    self.socket.close()
+                    self.socket = None
+                os_utils.osEec(args)
+            finally:
+                traceback.print_exc()
+                os._exit(70)
         else:
             pass
         sock_utils.tryConnect("localhost", self.port,
