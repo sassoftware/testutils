@@ -100,11 +100,8 @@ class ApacheServer(base_server.BaseServer):
                         "-C", 'DocumentRoot "%s"' % self.serverRoot)
                 # need to setpgrp because httpd stop kills the processgroup
                 os.setpgrp()
-                if getattr(self, 'socket', None):
-                    self.socket.close()
-                    self.socket = None
-                os_utils.osEec(args)
-            finally:
+                os_utils.osExec(args)
+            except:
                 traceback.print_exc()
                 os._exit(70)
         else:
