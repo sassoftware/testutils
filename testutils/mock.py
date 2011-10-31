@@ -176,6 +176,7 @@ class MockManager(object):
         self.superClass = object
         self.stableReturnValues = stableReturnValues
         self.returnValues = self.noReturnValue
+        self.failOnMismatch = False
 
         # Store the line of code responsible for creating this mock
         # object.
@@ -212,6 +213,9 @@ class MockManager(object):
 
     def setDefaultReturns(self, returnValues):
         self.returnValues = returnValues
+
+    def setFailOnMismatch(self, failOnMismatch=True):
+        self.failOnMismatch = failOnMismatch
 
     def clearReturn(self, *args, **kw):
         kw = tuple(sorted(kw.items()))
@@ -334,6 +338,9 @@ class MockManager(object):
                     if len(self.returnValues) > 1:
                         self.returnValues = self.returnValues[1:]
                     return returnValue
+                if self.failOnMismatch:
+                    raise TypeError("No matching return value for call: "
+                            "args=%r kwargs=%r" % (args, kw))
                 if self.stableReturnValues:
                     self.returnValues = [MockObject(stableReturnValues=True)]
                     return self.returnValues[0]
