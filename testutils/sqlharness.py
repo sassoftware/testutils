@@ -276,7 +276,8 @@ class SQLServer(BaseSQLServer):
         return False
     def _kill(self, name, cu):
         raise NotImplementedError
-    def _dropDB(self, name, cu):
+    def _dropDB(self, name, db):
+        cu = db.cursor()
         cu.execute("drop database %s" % name)
 
     def getRootDB(self):
@@ -293,8 +294,9 @@ class SQLServer(BaseSQLServer):
             return
         BaseSQLServer.dropDB(self, name)
         while self._kill(name, cu):
+            db.rollback()
             pass
-        self._dropDB(name, cu)
+        self._dropDB(name, db)
         db.commit()
         db.close()
 
@@ -303,7 +305,7 @@ class SQLServer(BaseSQLServer):
         cu = db.cursor()
         if not self._hasDB(name, cu):
             BaseSQLServer.createDB(self, name)
-            cu.execute(self.init % name)
+            self._runAutoCommit(db, self.init % name)
         db.commit()
         db.close()
         return self.dbClass(self, name)
@@ -422,7 +424,10 @@ class PostgreSQLServer(SQLServer):
                 break
         if not count:
             raise SystemError, "unable to contact postgresql server"
-        db.execute('create language "plpgsql"')
+        try:
+            db.execute('create language "plpgsql"')
+        except:
+            pass
         db.commit()
         db.close()
         del db
@@ -450,12 +455,12 @@ class PostgreSQLServer(SQLServer):
                 time.sleep(0.1)
         return ret
 
-    def _dropDB(self, name, cu):
+    def _dropDB(self, name, db):
         t1 = time.time()
         while True:
             try:
-                cu.execute("drop database %s" % name)
-            except sqlerrors.CursorError, e:
+                self._runAutoCommit(db, "drop database %s" % name)
+            except sqlerrors.CursorError:
                 pass
             else:
                 break
@@ -470,8 +475,22 @@ class PostgreSQLServer(SQLServer):
         select d.datname from pg_catalog.pg_database as d
         join pg_catalog.pg_roles as r on d.datdba = r.oid""")
 
+    @staticmethod
+    def _runAutoCommit(db, *args, **kwargs):
+        cu = db.cursor()
+        try:
+            return db.runAutoCommit(cu.execute, *args, **kwargs)
+        except AttributeError:
+            return cu.execute(*args, **kwargs)
+
+
 class PgpoolServer(PostgreSQLServer):
     driver = "pgpool"
+
+
+class PsycoServer(PostgreSQLServer):
+    driver = "psycopg2"
+
 
 def getHarness(driver, topdir = None, dbClass = RepositoryDatabase):
     global _harness
@@ -503,6 +522,8 @@ def getHarness(driver, topdir = None, dbClass = RepositoryDatabase):
         h = PostgreSQLServer(sqldir, dbClass)
     elif driver == 'pgpool':
         h = PgpoolServer(sqldir, dbClass)
+    elif driver == 'psycopg2':
+        h = PsycoServer(sqldir, dbClass)
     else:
         raise RuntimeError("Unknown database type specified: %s" % driver)
     _harness[driver] = h
