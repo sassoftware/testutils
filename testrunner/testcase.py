@@ -30,6 +30,7 @@ import tempfile
 import types
 import unittest
 from testrunner.output import SkipTestException
+from testutils import mock
 from testutils import os_utils
 
 class LogFilter:
@@ -277,6 +278,8 @@ class TestCase(unittest.TestCase, MockMixIn):
                 os._exit(2)
 
             self.unmock()
+            mock.unmockAll()
+
             # ask gc to run to see if we can avoid "leaked -1 file descriptors"
             gc.collect()
             fdCount = util.countOpenFileDescriptors()
