@@ -352,9 +352,10 @@ class _TestSuiteHandler(object):
                 sys.exit(1)
             xml_stream['prefix'] = options.xml_prefix
 
+        failedpath = os.path.abspath('.failed')
         if options.rerun_failed:
-            if os.path.exists('.failed'):
-                args += [ x for x in open('.failed').read().split('\n') if x]
+            if os.path.exists(failedpath):
+                args += [ x for x in open(failedpath).read().split('\n') if x]
             else:
                 raise RuntimeError('Could not find .failed file from previous failing run')
         runner = output.DebugTestRunner(debug=options.debug,
@@ -386,7 +387,7 @@ class _TestSuiteHandler(object):
 
             results = runner.run(suite)
         if results.erroredTests or results.failedTests:
-            failedTests = open('.failed', 'w')
+            failedTests = open(failedpath, 'w')
             print 'Failed tests:'
             for test, tb in itertools.chain(results.errors,
                                             results.failures):
