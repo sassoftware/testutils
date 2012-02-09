@@ -120,3 +120,12 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None,
             print 'log file is missing'
     # re-raise the last error
     raise
+
+
+def getLocalhostIP():
+    """
+    Return the first IP that 'localhost' resolves to.
+
+    Hopefully that's either 127.0.0.1 or ::1.
+    """
+    return socket.getaddrinfo('localhost', 0)[0][4][0]
