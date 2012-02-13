@@ -27,12 +27,13 @@ class TestUtils(CPackageRecipe):
         assert False
 
     def setup(r):
-        if not r.native:
-            r.rpathSetup()
+        if r.encapsulated:
+            r.rpathSetup(embedded=(not r.native))
         else:
             r.macros.pylib = '%(libdir)s'
+            r.macros.pyinc = '%(includedir)s/python%(pyver)s'
 
         r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
-        r.MakeInstall('libdir=%(pylib)s PYINCLUDE=%(includedir)s')
+        r.MakeInstall('libdir=%(pylib)s PYINCLUDE=%(pyinc)s')
         r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump',
                 mode=0755)
