@@ -11,6 +11,7 @@ class TestUtils(CPackageRecipe):
     plat = 'centos'
     platver = '6'
     encapsulated = False
+    native = True
 
     if plat == 'rpath':
         buildRequires = [
@@ -26,7 +27,10 @@ class TestUtils(CPackageRecipe):
         assert False
 
     def setup(r):
+        if not r.native:
+            r.rpathSetup()
+
         r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
-        r.MakeInstall()
+        r.MakeInstall('libdir=%(pylib)s PYINCLUDE=%(includedir)s')
         r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump',
                 mode=0755)
