@@ -15,10 +15,12 @@ class TestUtils(CPackageRecipe):
     if plat == 'rpath':
         buildRequires = [
             'python:devel',
+            'epdb:python',
           ]
     elif plat == 'centos' and encapsulated:
         buildRequires = [
             'python-devel:rpm',
+            'python-epdb:python',
             ]
     else:
         assert False
