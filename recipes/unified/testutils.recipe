@@ -29,6 +29,8 @@ class TestUtils(CPackageRecipe):
     def setup(r):
         if not r.native:
             r.rpathSetup()
+        else:
+            r.macros.pylib = '%(libdir)s'
 
         r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
         r.MakeInstall('libdir=%(pylib)s PYINCLUDE=%(includedir)s')
