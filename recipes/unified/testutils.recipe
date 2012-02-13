@@ -1,0 +1,30 @@
+#
+# Copyright (c) rPath, Inc.
+# This file is distributed under the terms of the MIT License.
+# A copy is available at http://www.rpath.com/permanent/mit-license.html
+#
+
+class TestUtils(CPackageRecipe):
+    name = 'testutils'
+    version = 'tip'
+
+    plat = 'centos'
+    platver = '6'
+    encapsulated = False
+
+    if plat == 'rpath':
+        buildRequires = [
+            'python:devel',
+          ]
+    elif plat == 'centos' and encapsulated:
+        buildRequires = [
+            'python-devel:rpm',
+            ]
+    else:
+        assert False
+
+    def setup(r):
+        r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
+        r.MakeInstall()
+        r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump',
+                mode=0755)

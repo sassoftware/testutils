@@ -20,7 +20,6 @@
 import bz2
 import coverage
 import cPickle
-import marshal
 import optparse
 import os
 import re
