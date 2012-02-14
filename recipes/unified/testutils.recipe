@@ -10,8 +10,8 @@ class TestUtils(CPackageRecipe):
 
     plat = 'centos'
     platver = '6'
-    encapsulated = False
-    native = True
+    embedded = False
+    encapsulated = True
 
     if plat == 'rpath':
         buildRequires = [
@@ -19,16 +19,22 @@ class TestUtils(CPackageRecipe):
             'epdb:python',
           ]
     elif plat == 'centos' and encapsulated:
-        buildRequires = [
-            'python-devel:rpm',
-            'python-epdb:python',
-            ]
+        if embedded:
+            buildRequires = [
+                'python-conary:devel',
+                'epdb-conary:python',
+                ]
+        else:
+            buildRequires = [
+                'python-devel:rpm',
+                'python-epdb:python',
+                ]
     else:
         assert False
 
     def setup(r):
         if r.encapsulated:
-            r.rpathSetup(embedded=(not r.native))
+            r.rpathSetup(embedded=r.embedded)
         else:
             r.macros.pyinc = '%(includedir)s/python%(pyver)s'
             r.macros.sitepkgs = '%(libdir)s/python%(pyver)s/site-packages'
