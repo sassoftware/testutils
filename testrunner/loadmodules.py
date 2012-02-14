@@ -218,9 +218,9 @@ def loadModules(moduleList, topDir='..', shouldClone=False, searchPath=None):
     except KeyboardInterrupt, e:
         raise
     except Exception, e:
-        import epdb
+        from conary.lib import debugger
         import traceback
         traceback.print_exc()
-        epdb.post_mortem(sys.exc_info()[2])
+        debugger.post_mortem(sys.exc_info()[2])
         sys.exit(1)
     os.environ['PYTHONPATH'] = ':'.join(sys.path)

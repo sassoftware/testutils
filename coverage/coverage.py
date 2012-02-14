@@ -426,8 +426,8 @@ class coverage:
     def restore(self):
         global c
         if self.cexecuted:
-            import epdb
-            epdb.st()
+            from conary.lib import debugger
+            debugger.st()
             return
         c.clear()
         self.cexecuted = {}

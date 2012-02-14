@@ -309,8 +309,8 @@ class _TestSuiteHandler(object):
         return tests
 
     def sigUsr1Handler(*args, **kw):
-        import epdb
-        epdb.serve()
+        from conary.lib import debugger
+        debugger.serve()
 
     def sortTests(self, tests):
         if self.sortTestFn:
