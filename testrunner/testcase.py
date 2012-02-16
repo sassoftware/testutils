@@ -333,6 +333,7 @@ class TestCase(unittest.TestCase, MockMixIn):
         if os.getenv('NO_CAPTURE'):
             return func(*args, **kwargs), ''
         returnException = kwargs.pop('_returnException', False)
+        printOnError = kwargs.pop('_printOnError', False)
         removeBrokenPipeErrors = kwargs.pop('_removeBokenPipeErrors', False)
         sys.stdout.flush()
         sys.stderr.flush()
@@ -361,7 +362,7 @@ class TestCase(unittest.TestCase, MockMixIn):
             os.dup2(stderr, sys.stderr.fileno())
             os.close(stderr)
 
-        if (not returnException) and e:
+        if e and not returnException and not printOnError:
             os.close(outfd)
             os.close(errfd)
             raise exc_info[0], exc_info[1], exc_info[2]
@@ -377,6 +378,16 @@ class TestCase(unittest.TestCase, MockMixIn):
         f = os.fdopen(errfd, 'r')
         serr = f.read()
         f.close()
+
+        if e and printOnError:
+            print
+            print 'BEGIN STDOUT'
+            sys.stdout.write(sout)
+            print
+            print 'BEGIN STDERR'
+            sys.stderr.write(serr)
+            print
+            raise exc_info[0], exc_info[1], exc_info[2]
 
         if removeBrokenPipeErrors:
             sout = '\n'.join([x for x in sout.split('\n') if x !=
