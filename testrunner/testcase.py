@@ -402,7 +402,7 @@ class TestCase(unittest.TestCase, MockMixIn):
             return (ret, sout + serr)
 
     def discardOutput(self, func, *args, **kwargs):
-        if 'SUPPRESS_DISCARDING_OUTPUT' in os.environ:
+        if os.getenv('NO_CAPTURE'):
             return func(*args, **kwargs)
 
         sys.stdout.flush()
