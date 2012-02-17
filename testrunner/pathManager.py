@@ -421,13 +421,14 @@ def discover( varname, discoveryOptional = False ):
                     except ValueError:
                         pass
 
-            if not selectedVer:
-                maxVersion = max(vers.keys())
-                selectedVer = vers[maxVersion]
+            if vers:
+                if not selectedVer:
+                    maxVersion = max(vers.keys())
+                    selectedVer = vers[maxVersion]
 
-            path = os.path.join(forestPath, selectedVer, treeName)
-            if os.path.exists(path):
-                return path
+                path = os.path.join(forestPath, selectedVer, treeName)
+                if os.path.exists(path):
+                    return path
 
     # 4. we look in the system
     if os.getenv("RPATH_USE_SYSTEM_MODULES") and 'provides' in varDict:
