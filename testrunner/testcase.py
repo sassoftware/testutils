@@ -564,6 +564,37 @@ class TestCase(unittest.TestCase, MockMixIn):
                                                             safe_repr(container))
                 self.fail(self._formatMessage(msg, standardMsg))
 
+    def assertRaises(self, excClass, callableObj=None, *args, **kwargs):
+        # Override so that the exception is returned. But also try to pass
+        # through the context manager feature added in Python 2.7
+        if callableObj is None:
+            return unittest.TestCase.assertRaises(self, excClass, callableObj,
+                    *args, **kwargs)
+        try:
+            callableObj(*args, **kwargs)
+        except excClass, err:
+            return err
+        else:
+            try:
+                exc_name = excClass.__name__
+            except AttributeError:
+                exc_name = str(excClass)
+            raise self.failureException("%s not raised" % exc_name)
+
+    def assertRaisesRegexp(self, expected_exception, expected_regexp,
+            callable_obj=None, *args, **kwargs):
+        if callable_obj is None:
+            return unittest.TestCase.assertRaisesRegexp(self,
+                    expected_exception, expected_regexp, callable_obj, *args,
+                    **kwargs)
+        if isinstance(expected_regexp, basestring):
+            expected_regexp = re.compile(expected_regexp)
+        exc_value = self.assertRaises(expected_exception, callable_obj, *args,
+                **kwargs)
+        if not expected_regexp.search(str(exc_value)):
+            raise self.failureException('"%s" does not match "%s"' %
+                    (expected_regexp.pattern, str(exc_value)))
+
     @classmethod
     def _strip(cls, data):
         if data is None:
