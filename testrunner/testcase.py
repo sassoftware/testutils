@@ -33,6 +33,14 @@ from testrunner.output import SkipTestException
 from testutils import mock
 from testutils import os_utils
 
+
+try:
+    from unittest.util import safe_repr as _safe_repr
+    safe_repr = _safe_repr
+except ImportError:
+    safe_repr = repr
+
+
 class LogFilter:
     def __init__(self):
         self.records = []
@@ -257,7 +265,6 @@ class TestCase(unittest.TestCase, MockMixIn):
     def run(self, *args, **kw):
         from conary.lib import util
         fdCount = util.countOpenFileDescriptors()
-        fdPath ='/proc/%s/fd' % os.getpid()
         if fdCount != len(self.openFds):
             self.openFds = self._openFdSet()
 
@@ -539,26 +546,23 @@ class TestCase(unittest.TestCase, MockMixIn):
             raise RuntimeError('Unable to find unused gid')
         return uid, gid
 
-    def failUnlessContains(self, needle, haystack, msg=None):
-        """Fail the test unless the needle is in the haystack."""
-        if not needle in haystack:
-            if not msg:
-                msg = "'%s' not in '%s'" %(needle, haystack)
-            raise self.failureException, msg
+    if hasattr(unittest.TestCase, 'assertIn'):
+        failUnlessContains = unittest.TestCase.assertIn
+    else:
+        def assertIn(self, member, container, msg=None):
+            """Just like self.assertTrue(a in b), but with a nicer default message."""
+            if member not in container:
+                standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                      safe_repr(container))
+                self.fail(self._formatMessage(msg, standardMsg))
+        failUnlessContains = assertIn
 
-    def failUnlessRaises(self, excClass, callableObj, *args, **kwargs):
-        try:
-            callableObj(*args, **kwargs)
-        except excClass, e:
-            return e
-        else:
-            if hasattr(excClass,'__name__'):
-                excName = excClass.__name__
-            else:
-                excName = str(excClass)
-            raise self.failureException, "%s not raised" % excName
-
-    assertRaises = failUnlessRaises
+        def assertNotIn(self, member, container, msg=None):
+            """Just like self.assertTrue(a not in b), but with a nicer default message."""
+            if member in container:
+                standardMsg = '%s unexpectedly found in %s' % (safe_repr(member),
+                                                            safe_repr(container))
+                self.fail(self._formatMessage(msg, standardMsg))
 
     @classmethod
     def _strip(cls, data):
