@@ -580,6 +580,7 @@ class TestCase(unittest.TestCase, MockMixIn):
             except AttributeError:
                 exc_name = str(excClass)
             raise self.failureException("%s not raised" % exc_name)
+    failUnlessRaises = assertRaises
 
     def assertRaisesRegexp(self, expected_exception, expected_regexp,
             callable_obj=None, *args, **kwargs):
