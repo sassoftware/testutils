@@ -554,7 +554,7 @@ class TestCase(unittest.TestCase, MockMixIn):
             if member not in container:
                 standardMsg = '%s not found in %s' % (safe_repr(member),
                                                       safe_repr(container))
-                self.fail(self._formatMessage(msg, standardMsg))
+                self.fail(msg or standardMsg)
         failUnlessContains = assertIn
 
         def assertNotIn(self, member, container, msg=None):
@@ -562,7 +562,7 @@ class TestCase(unittest.TestCase, MockMixIn):
             if member in container:
                 standardMsg = '%s unexpectedly found in %s' % (safe_repr(member),
                                                             safe_repr(container))
-                self.fail(self._formatMessage(msg, standardMsg))
+                self.fail(msg or standardMsg)
 
     def assertRaises(self, excClass, callableObj=None, *args, **kwargs):
         # Override so that the exception is returned. But also try to pass
