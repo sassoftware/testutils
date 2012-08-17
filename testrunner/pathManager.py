@@ -189,6 +189,9 @@ discoveryDefaults = {
         'ROBJ_TEST_PATH': {
             'provides':'robjtest',
             'path':'products/rbuilder/$VERSION/robj/test'},
+        'WMICLIENT_PATH' : {
+            'provides':'wmiclient',
+            'path':'products/rbuilder/$VERSION/wmiclient/py'},
 
         # Third-party libraries
         'BOTO_PATH': {
