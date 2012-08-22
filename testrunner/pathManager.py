@@ -68,6 +68,9 @@ discoveryDefaults = {
         'RMAKE_TEST_PATH': {
             'provides':'rmake_test',
             'path':'products/rmake/$VERSION/rmake-private'},
+        'REPEATER_PATH' : {
+            'provides':'rpath_repeater',
+            'path':'products/rbuilder/$VERSION/rpath-repeater'},
         'ICONFIG_PATH': {
             'provides':'iconfig',
             'path':'products/iconfig/$VERSION/iconfig'},
