@@ -112,18 +112,18 @@ class CoverageWrapper(object):
         return totalLines, totalCovered, percentCovered
 
 def getEnviron():
-    conaryPath = os.environ.get('CONARY_PATH', None)
     coveragePath = os.environ.get('COVERAGE_PATH', None)
     policyPath = os.environ.get('CONARY_POLICY_PATH', '/usr/lib/conary/policy')
     if not coveragePath:
-        import testutils
-        coveragePath = (os.path.dirname(os.path.dirname(testutils.__file__))
+        try:
+            import coverage
+            coveragePath = os.path.dirname(coverage.__file__)
+        except ImportError:
+            import testutils
+            coveragePath = (os.path.dirname(os.path.dirname(testutils.__file__))
                 + '/coverage')
         os.environ['COVERAGE_PATH'] = coveragePath
-    elif not policyPath:
-        print "Please set CONARY_POLICY_PATH"
-        sys.exit(1)
-    return {'conary'   : conaryPath,
+    return {
             'policy'   : policyPath,
             'coverage' : coveragePath}
 
