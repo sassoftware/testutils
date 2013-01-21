@@ -22,6 +22,7 @@
 #
 
 
+import inspect
 import os
 import sys
 import unittest
@@ -126,6 +127,12 @@ class TestSuite(object):
             tests.extend(sorted(buckets[bucketName]))
         return tests
 
+    def getCoverageDirs(self, handler, environ):
+        return [self.testsuite_module]
+
+    def getCoverageExclusions(self, handler, environ):
+        return None
+
     def main(self, argv = None, individual = True):
         self.__class__.individual = individual
         self.setup()
@@ -136,14 +143,20 @@ class TestSuite(object):
         class Handler(testhelp.TestSuiteHandler):
             suiteClass = self.__class__.suiteClass
             def getCoverageDirs(slf, environ):
-                if hasattr(self, 'getCoverageDirs'):
-                    return self.getCoverageDirs(slf, environ)
-                return [ os.path.dirname(self.testsuite_module.__file__) ]
+                dirs = self.getCoverageDirs(slf, environ)
+                for n, dirname in enumerate(dirs):
+                    if inspect.ismodule(dirname):
+                        dirname = os.path.dirname(dirname.__file__)
+                    dirs[n] = os.path.abspath(dirname)
+                return dirs
 
             def getCoverageExclusions(slf, environ):
-                if hasattr(self, 'getCoverageExclusions'):
-                    return self.getCoverageExclusions(slf, environ)
-                return testhelp.TestSuiteHandler.getCoverageExclusions(slf, environ)
+                excl = self.getCoverageExclusions(slf, environ)
+                if excl is None:
+                    excl = testhelp.TestSuiteHandler.getCoverageExclusions(slf,
+                            environ)
+                return excl
+
             def sortTests(slf, tests):
                 return self.sortTests(tests)
 
