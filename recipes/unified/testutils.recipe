@@ -56,7 +56,7 @@ class TestUtils(CPackageRecipe):
         r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
         if r.embedded:
             r.Replace("/usr/bin/python",
-                "%(bindir)s/python",
+                "/usr/conary/bin/python",
                 "testrunner/coveragewrapper.py")
 
         r.MakeInstall('sitedir=%(sitepkgs)s PYINCLUDE=%(pyinc)s')
