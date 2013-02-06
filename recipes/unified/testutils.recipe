@@ -54,6 +54,11 @@ class TestUtils(CPackageRecipe):
             r.macros.sitepkgs = '%(libdir)s/python%(pyver)s/site-packages'
 
         r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
+        if r.embedded:
+            r.Replace("/usr/bin/python",
+                "%(bindir)s/python",
+                "testrunner/coveragewrapper.py")
+
         r.MakeInstall('sitedir=%(sitepkgs)s PYINCLUDE=%(pyinc)s')
         r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump',
                 mode=0755)
