@@ -37,8 +37,6 @@ from conary.lib import util
 from conary import dbstore
 from conary.dbstore import sqlerrors
 
-import testsuite
-
 # catch subprocess exec errors and be more informative about them
 def osExec(args):
     try:
@@ -50,6 +48,13 @@ def osExec(args):
         # if we reach here, it's an error anyway
     finally:
         os._exit(-1)
+
+def execute(cmd):
+    p = subprocess.Popen(cmd, shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         close_fds=True)
+    out, err = p.communicate()
+    return p.returncode, out, err
 
 class RepositoryDatabase:
     verbose = 0
@@ -92,6 +97,24 @@ class RepositoryDatabase:
         from conary.server.schema import loadSchema
         loadSchema(db)
         db.commit()
+
+    def clearSchema(self):
+        if self.verbose:
+            print "Clearing schema"
+        db = self.connect()
+        self.harness.clearDBSchema(self.dbName, db)
+
+    def dumpSchema(self, dumpPath):
+        if self.verbose:
+            print "Dumping schema"
+        db = self.connect()
+        self.harness.dumpSchema(self.dbName, db, dumpPath)
+
+    def loadSchemaDump(self, dumpPath):
+        if self.verbose:
+            print "Loading schema dump"
+        db = self.connect()
+        self.harness.loadSchemaDump(self.dbName, db, dumpPath)
 
     def _getNetAuth(self):
         db = self.connect()
@@ -165,6 +188,15 @@ class BaseSQLServer(BaseServer):
     def dropDB(self, name):
         if self.verbose:
             print "DROP DATABASE", name
+    def clearDBSchema(self, name, db):
+        if self.verbose:
+            print "Clearing database schema", name
+    def dumpSchema(self, name, db, dumpPath):
+        if self.verbose:
+            print "Dumping database schema %s to %s" % (name, dumpPath)
+    def loadSchemaDump(self, name, db, dumpPath):
+        if self.verbose:
+            print "Loading database schema %s from %s" % (name, dumpPath)
 
     def getDB(self, name = "testdb", keepExisting = False):
         if not keepExisting:
@@ -201,6 +233,26 @@ class SqliteServer(BaseSQLServer):
         dbPath = os.path.join(self.path, name)
         if os.path.exists(dbPath):
             os.unlink(dbPath)
+
+    def clearDBSchema(self, name, db):
+        BaseSQLServer.clearDBSchema(self, name, db)
+        self.dropDB(name)
+        self.initDB(name)
+
+    def dumpSchema(self, name, db, dumpPath):
+        BaseSQLServer.dumpSchema(self, name, db, dumpPath)
+        cmd = "sqlite3 '%s' .dump > '%s'" % (name, dumpPath)
+        returncode, out, err = execute(cmd)
+        if returncode != 0:
+            raise RuntimeError("%s: %s, %s" % (returncode, out, err))
+
+    def loadSchemaDump(self, name, db, dumpPath):
+        BaseSQLServer.loadSchemaDump(self, name, db, dumpPath)
+        tfile = util.AtomicFile(name)
+        cmd = "sqlite3 '%s' < '%s'" % (tfile.name, dumpPath)
+        execute(cmd)
+        util.removeIfExists(name + '.journal')
+        tfile.commit()
 
     def isStarted(self):
         return self.path is not None
@@ -346,17 +398,12 @@ innodb_fast_shutdown
 log_slow_queries
 long_query_time=1
 """ % d)
-        if testsuite.isIndividual():
-            f.write("log=%(dir)s/query.log\n" % d)
         f.close()
 
         # now prepare the new MySQL instance
         cmd = "/usr/bin/mysql_install_db --defaults-file=%s" % cfgFile
-        p = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             close_fds=True)
-        out, err = p.communicate()
-        if p.returncode != 0:
+        returncode, out, err = execute(cmd)
+        if returncode != 0:
             raise RuntimeError('mysql db initialization failed: %s' % out+err)
         
         self.fork("/usr/sbin/mysqld", "--defaults-file=%s" % cfgFile)
@@ -393,6 +440,8 @@ long_query_time=1
 class PostgreSQLServer(SQLServer):
     driver = "postgresql"
     rootdb = "postgres"
+
+    bindir = '/usr/bin'
     def __init__(self, path, dbClass = RepositoryDatabase):
         self.user = 'testutils'
         SQLServer.__init__(self, path, dbClass)
@@ -402,16 +451,13 @@ class PostgreSQLServer(SQLServer):
         
     def _start(self):
         # prepare the new postgres instance
-        cmd = "/usr/bin/initdb --encoding=UTF8 --no-locale --pgdata=%s/data -A trust --username=%s >%s" %(
-            self.path, self.user, self.log)
-        p = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             close_fds=True)
-        out, err = p.communicate()
-        if p.returncode != 0:
+        cmd = "%s/initdb --encoding=UTF8 --no-locale --pgdata=%s/data -A trust --username=%s >%s" %(
+            self.bindir, self.path, self.user, self.log)
+        returncode, out, err = execute(cmd)
+        if returncode != 0:
             raise RuntimeError('postgresql db initialization failed: %s' % out+err)
         # start up the postgres instance
-        self.fork("/usr/bin/postmaster",
+        self.fork("%s/postmaster" % self.bindir,
                   "-D", "%s/data" % self.path,
                   "-p", "%d" % self.port,
                   "-F")
@@ -488,6 +534,70 @@ class PostgreSQLServer(SQLServer):
         except AttributeError:
             return cu.execute(*args, **kwargs)
 
+    def clearDBSchema(self, name, db):
+        cu = db.cursor()
+        cu2 = db.cursor()
+        cu.execute("""
+            select proname, pg_get_function_identity_arguments(pg_proc.oid),
+                   nspname
+              from pg_proc
+              join pg_namespace on pg_proc.pronamespace = pg_namespace.oid
+             where nspname != 'information_schema' and nspname not like 'pg_%'
+        """)
+        procs = []
+        for procname, procargs, nspname in cu:
+            procs.append('"%s"."%s"(%s)' % (nspname, procname, procargs))
+            cu2.execute('DROP FUNCTION "%s"."%s"(%s) CASCADE' % (nspname, procname,
+                procargs))
+
+        cu.execute("""
+            select relname, nspname, relkind
+              from pg_class
+              join pg_namespace on pg_class.relnamespace = pg_namespace.oid
+             where relkind in ('v', 'r')
+               and nspname != 'information_schema'
+               and nspname not like 'pg_%'
+        """)
+        tables = []
+        views = []
+        for relname, relnsp, relkind in cu:
+            if relkind == 'v':
+                views.append('"%s"."%s"' % (relnsp, relname))
+            elif relkind == 'r':
+                tables.append('"%s"."%s"' % (relnsp, relname))
+        if views:
+            cu.execute("DROP VIEW " + ", ".join(views))
+        if tables:
+            cu.execute("DROP TABLE " + ", ".join(tables))
+
+        cu.execute("""
+            select nspname
+              from pg_namespace
+             where nspname != 'information_schema'
+               and nspname not like 'pg_%'
+        """)
+        for nspname, in cu:
+            if nspname == 'public':
+                continue
+            cu2.execute('drop schema "%s"' % nspname)
+
+        db.commit()
+
+    def dumpSchema(self, name, db, dumpPath):
+        BaseSQLServer.dumpSchema(self, name, db, dumpPath)
+        cmd = "%s/pg_dump --port=%s --user=%s --format=custom %s > %s" % (
+                self.bindir, self.port, self.user, name, dumpPath)
+        returncode, out, err = execute(cmd)
+        if returncode != 0:
+            raise RuntimeError("%s: %s, %s" % (returncode, out, err))
+
+    def loadSchemaDump(self, name, db, dumpPath):
+        BaseSQLServer.loadSchemaDump(self, name, db, dumpPath)
+        cmd = "%s/pg_restore --port=%s --user=%s -d %s < %s" % (
+                self.bindir, self.port, self.user, name, dumpPath)
+        returncode, out, err = execute(cmd)
+        if returncode != 0:
+            raise RuntimeError("%s: %s, %s" % (returncode, out, err))
 
 class PgpoolServer(PostgreSQLServer):
     driver = "pgpool"
