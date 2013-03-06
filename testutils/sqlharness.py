@@ -593,7 +593,7 @@ class PostgreSQLServer(SQLServer):
 
     def loadSchemaDump(self, name, db, dumpPath):
         BaseSQLServer.loadSchemaDump(self, name, db, dumpPath)
-        cmd = "%s/pg_restore --port=%s --user=%s -d %s < %s" % (
+        cmd = "%s/pg_restore --port=%s --user=%s -d %s %s" % (
                 self.bindir, self.port, self.user, name, dumpPath)
         returncode, out, err = execute(cmd)
         if returncode != 0:
