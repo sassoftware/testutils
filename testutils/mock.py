@@ -160,6 +160,7 @@ class MockObject(object):
 class MockManager(object):
     #pylint: disable-msg=R0902
     noReturnValue = object()
+    noAttribute = object()
 
     def __init__(self, obj, stableReturnValues=False):
         self._enabledByDefault = False
@@ -177,7 +178,7 @@ class MockManager(object):
         self.eqCalls = []
         self.obj = obj
         self.method = None
-        self.origValue = None
+        self.origValue = self.noAttribute
         self.superClass = object
         self.stableReturnValues = stableReturnValues
         self.returnValues = self.noReturnValue
@@ -424,17 +425,13 @@ def mockFunction(function, returnValue=_NO_RETURN_VALUE):
 def mock(obj, attr, returnValue=_NO_RETURN_VALUE):
     m = MockObject()
     if hasattr(obj, attr):
-        found = False
         if inspect.isclass(obj):
-            # Looks like a class; try to get the underlying property
-            # instead of its "bound" value. This will preserve static
-            # methods and other magical items.
-            for cls in inspect.getmro(obj):
-                if attr in cls.__dict__:
-                    found = True
-                    m._mock.origValue = cls.__dict__[attr]
-                    break
-        if not found:
+            # Looks like a class; try to get the underlying property instead
+            # of its "bound" value. This will preserve static methods and
+            # other magical items.
+            if attr in obj.__dict__:
+                m._mock.origValue = obj.__dict__[attr]
+        else:
             # Not a class so just grab the attribute.
             m._mock.origValue = getattr(obj, attr)
     setattr(obj, attr, m)
@@ -446,7 +443,11 @@ def unmockAll():
     for obj, attr in _mocked:
         if not hasattr(getattr(obj, attr), '_mock'):
             continue
-        setattr(obj, attr, getattr(obj, attr)._mock.origValue)
+        m = getattr(obj, attr)._mock
+        if m.origValue is m.noAttribute:
+            delattr(obj, attr)
+        else:
+            setattr(obj, attr, m.origValue)
     _mocked[:] = []
 
 class MockParams(object):
