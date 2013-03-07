@@ -88,13 +88,13 @@ discoveryDefaults = {
             'path':'products/rbuilder/$VERSION/catalog-service'},
         'CATALOG_SERVICE_TEST_PATH': {
             'provides':'catalogService_test',
-            'path':'products/rbuilder/$VERSION/catalog-service-private'},
+            'path':'products/rbuilder/$VERSION/catalog-service'},
         'CAPSULE_INDEXER_PATH' : {
             'provides':'rpath_capsule_indexer',
             'path':'products/rbuilder/$VERSION/rpath-capsule-indexer'},
         'CAPSULE_INDEXER_TEST_PATH' : {
             'provides':'capsule_indexertest',
-            'path':'products/rbuilder/$VERSION/rpath-capsule-indexer-test'},
+            'path':'products/rbuilder/$VERSION/rpath-capsule-indexer'},
         'JOB_MASTER_PATH': {
             'provides':'jobmaster',
             'path':'products/rbuilder/$VERSION/jobmaster'},
@@ -118,7 +118,7 @@ discoveryDefaults = {
             'path':'products/rbuilder/$VERSION/pcreator'},
         'PACKAGE_CREATOR_SERVICE_TEST_PATH': {
             'provides':'factory_test',
-            'path':'products/rbuilder/$VERSION/pcreator-test'},
+            'path':'products/rbuilder/$VERSION/pcreator'},
 
         # rPA
         'RAA_PATH': {
