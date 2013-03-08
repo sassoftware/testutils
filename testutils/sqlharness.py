@@ -37,11 +37,20 @@ from conary.lib import util
 from conary import dbstore
 from conary.dbstore import sqlerrors
 
+def findBin(name):
+    for dirname in os.environ['PATH'].split(os.pathsep):
+        path = os.path.join(dirname, name)
+        if os.path.exists(path):
+            return path
+    return name
+
+
 # catch subprocess exec errors and be more informative about them
 def osExec(args):
+    binpath = findBin(args[0])
     try:
         try:
-            os.execv(args[0], args)
+            os.execv(binpath, args)
             os._exit(1)
         except OSError:
             sys.stderr.write("\nERROR:\nCould not exec: %s\n" % (args,))
@@ -401,12 +410,12 @@ long_query_time=1
         f.close()
 
         # now prepare the new MySQL instance
-        cmd = "/usr/bin/mysql_install_db --defaults-file=%s" % cfgFile
+        cmd = "mysql_install_db --defaults-file=%s" % cfgFile
         returncode, out, err = execute(cmd)
         if returncode != 0:
             raise RuntimeError('mysql db initialization failed: %s' % out+err)
         
-        self.fork("/usr/sbin/mysqld", "--defaults-file=%s" % cfgFile)
+        self.fork("mysqld", "--defaults-file=%s" % cfgFile)
 
         sock = socket.socket()
         count = 500
@@ -441,7 +450,6 @@ class PostgreSQLServer(SQLServer):
     driver = "postgresql"
     rootdb = "postgres"
 
-    bindir = '/usr/bin'
     def __init__(self, path, dbClass = RepositoryDatabase):
         self.user = 'testutils'
         SQLServer.__init__(self, path, dbClass)
@@ -451,13 +459,13 @@ class PostgreSQLServer(SQLServer):
         
     def _start(self):
         # prepare the new postgres instance
-        cmd = "%s/initdb --encoding=UTF8 --no-locale --pgdata=%s/data -A trust --username=%s >%s" %(
-            self.bindir, self.path, self.user, self.log)
+        cmd = "initdb --encoding=UTF8 --no-locale --pgdata=%s/data -A trust --username=%s >%s" %(
+            self.path, self.user, self.log)
         returncode, out, err = execute(cmd)
         if returncode != 0:
             raise RuntimeError('postgresql db initialization failed: %s' % out+err)
         # start up the postgres instance
-        self.fork("%s/postmaster" % self.bindir,
+        self.fork("postmaster",
                   "-D", "%s/data" % self.path,
                   "-p", "%d" % self.port,
                   "-F")
@@ -585,16 +593,16 @@ class PostgreSQLServer(SQLServer):
 
     def dumpSchema(self, name, db, dumpPath):
         BaseSQLServer.dumpSchema(self, name, db, dumpPath)
-        cmd = "%s/pg_dump --port=%s --user=%s --format=custom %s > %s" % (
-                self.bindir, self.port, self.user, name, dumpPath)
+        cmd = "pg_dump --port=%s --user=%s --format=custom %s > %s" % (
+                self.port, self.user, name, dumpPath)
         returncode, out, err = execute(cmd)
         if returncode != 0:
             raise RuntimeError("%s: %s, %s" % (returncode, out, err))
 
     def loadSchemaDump(self, name, db, dumpPath):
         BaseSQLServer.loadSchemaDump(self, name, db, dumpPath)
-        cmd = "%s/pg_restore --port=%s --user=%s -d %s %s" % (
-                self.bindir, self.port, self.user, name, dumpPath)
+        cmd = "pg_restore --port=%s --user=%s -d %s %s" % (
+                self.port, self.user, name, dumpPath)
         returncode, out, err = execute(cmd)
         if returncode != 0:
             raise RuntimeError("%s: %s, %s" % (returncode, out, err))
