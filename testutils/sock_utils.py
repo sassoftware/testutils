@@ -93,7 +93,7 @@ def findPorts(num=1, closeSockets=True):
 
 
 def tryConnect(host, port, count=100, interval=0.1, logFile=None,
-               backoff=0.05, maxInterval=1):
+               backoff=0.05, maxInterval=1, abortFunc=None):
     addrs = socket.getaddrinfo(host, port)
     family, socktype, proto, _, sockaddr = addrs[0]
     sock = socket.socket(family, socktype)
@@ -102,6 +102,12 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None,
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     for n in range(count):
+        if abortFunc and not abortFunc():
+            # Set the exception for 'raise' to raise at the end of this func
+            try:
+                raise RuntimeError("Server exited unexpectedly")
+            except:
+                break
         try:
             sock.connect(sockaddr)
             sock.close()
