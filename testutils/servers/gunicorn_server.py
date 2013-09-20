@@ -15,6 +15,7 @@
 #
 
 import os
+import signal
 from testutils import sock_utils
 from testutils import subprocutil
 
@@ -55,7 +56,7 @@ class GunicornServer(object):
         return self.server.check()
 
     def stop(self):
-        self.server.kill()
+        self.server.kill(signum=signal.SIGQUIT, timeout=15)
 
     def reset(self):
         if not os.path.isdir(self.serverDir):
