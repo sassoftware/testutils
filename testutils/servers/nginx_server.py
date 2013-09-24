@@ -41,11 +41,14 @@ class NginxServer(object):
         self.configPath = os.path.join(self.serverDir, 'nginx.conf')
         self.accessLog = os.path.join(self.serverDir, 'access.log')
         self.errorLog = os.path.join(self.serverDir, 'error.log')
+        if not os.path.isdir(self.serverDir):
+            os.makedirs(self.serverDir)
         self.server = subprocutil.GenericSubprocess(
             args=['nginx',
                 '-c', self.configPath,
                 '-p', self.serverDir,
                 ],
+            stderr=open(self.errorLog, 'a'),
             )
 
     def start(self):
@@ -107,7 +110,20 @@ http {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $http_host;
 
-        location / { proxy_pass %(proxyTo)s; }
+        uwsgi_param  QUERY_STRING       $query_string;
+        uwsgi_param  REQUEST_METHOD     $request_method;
+        uwsgi_param  CONTENT_TYPE       $content_type;
+        uwsgi_param  CONTENT_LENGTH     $content_length;
+        uwsgi_param  REQUEST_URI        $request_uri;
+        uwsgi_param  PATH_INFO          $document_uri;
+        uwsgi_param  SERVER_PROTOCOL    $server_protocol;
+        uwsgi_param  HTTPS              $https if_not_empty;
+        uwsgi_param  REMOTE_ADDR        $remote_addr;
+        uwsgi_param  REMOTE_PORT        $remote_port;
+        uwsgi_param  SERVER_PORT        $server_port;
+        uwsgi_param  SERVER_NAME        $server_name;
+
+        location / { %(proxyTo)s; }
     }
 }
 """ % dict(

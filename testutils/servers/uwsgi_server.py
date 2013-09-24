@@ -20,25 +20,34 @@ from testutils import sock_utils
 from testutils import subprocutil
 
 
-class GunicornServer(object):
+class UwsgiServer(object):
     def __init__(self, serverDir,
             application,
-            port=None,
+            port='UNIX',
             workers=2,
             timeout=None,
             environ=(),
             ):
         self.serverDir = os.path.abspath(serverDir)
-        self.port = port if port else sock_utils.findPorts(num=1)[0]
-        self.accessLog = os.path.join(self.serverDir, 'access.log')
+        if port == 'UNIX':
+            self.socketPath = os.path.join(self.serverDir, 'uwsgi.sock')
+            self.port = None
+            self.proxyTo = 'unix://' + self.socketPath
+            bindTo = self.socketPath
+        else:
+            self.socketPath = None
+            self.port = port if port else sock_utils.findPorts(num=1)[0]
+            self.proxyTo = '127.0.0.1:%d' % self.port
+            bindTo = ':%d' % self.port
         self.errorLog = os.path.join(self.serverDir, 'error.log')
         self.server = subprocutil.GenericSubprocess(
-                args=['gunicorn',
-                    '--bind', '[::]:%d' % self.port,
-                    '--workers', str(workers),
-                    '--timeout', str(timeout or 0),
-                    '--access-logfile', self.accessLog,
-                    application,
+                args=['uwsgi',
+                    '--master',
+                    '--uwsgi-socket', bindTo,
+                    '--need-app',
+                    '-p', str(workers),
+                    '-t', str(timeout or 0),
+                    '--wsgi', application,
                     ],
                 environ=environ,
                 )
@@ -47,7 +56,13 @@ class GunicornServer(object):
         self.reset()
         self.server.stdout = self.server.stderr = open(self.errorLog, 'a')
         self.server.start()
-        sock_utils.tryConnect('::', self.port,
+        if self.socketPath:
+            host = None
+            port = self.socketPath
+        else:
+            host = '127.0.0.1'
+            port = self.port
+        sock_utils.tryConnect(host, port,
                 logFile=self.errorLog,
                 abortFunc=self.server.check,
                 )
@@ -61,11 +76,7 @@ class GunicornServer(object):
     def reset(self):
         if not os.path.isdir(self.serverDir):
             os.makedirs(self.serverDir)
-        open(self.accessLog, 'w').close()
         open(self.errorLog, 'w').close()
 
-    def getUrl(self):
-        return 'http://127.0.0.1:%d' % self.port
-
     def getProxyTo(self):
-        return 'proxy_pass ' + self.getUrl()
+        return 'uwsgi_pass ' + self.proxyTo

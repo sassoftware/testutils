@@ -94,9 +94,13 @@ def findPorts(num=1, closeSockets=True):
 
 def tryConnect(host, port, count=100, interval=0.1, logFile=None,
                backoff=0.05, maxInterval=1, abortFunc=None):
-    addrs = socket.getaddrinfo(host, port)
-    family, socktype, proto, _, sockaddr = addrs[0]
-    sock = socket.socket(family, socktype)
+    if host:
+        addrs = socket.getaddrinfo(host, port)
+        family, socktype, proto, _, sockaddr = addrs[0]
+        sock = socket.socket(family, socktype)
+    else:
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sockaddr = port
     # Setting SO_REUSEADDR lets the kernel recycle dead ports
     # immediately, which is polite since we're making so many connections.
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -113,7 +117,7 @@ def tryConnect(host, port, count=100, interval=0.1, logFile=None,
             sock.close()
             return
         except socket.error, error:
-            if error.args[0] == errno.ECONNREFUSED:
+            if error.args[0] in (errno.ECONNREFUSED, errno.ENOENT):
                 i = min(interval + n * backoff,maxInterval)
                 time.sleep(i)
                 continue
