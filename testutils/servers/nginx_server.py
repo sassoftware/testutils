@@ -143,6 +143,6 @@ http {
 
     def getUrl(self, ssl=True):
         if ssl and self.sslCert:
-            return 'https://127.0.0.1:%d' % self.sslPort
+            return 'https://localhost:%d' % self.sslPort
         else:
-            return 'http://127.0.0.1:%d' % self.plainPort
+            return 'http://localhost:%d' % self.plainPort
