@@ -19,7 +19,6 @@ python_files = $(wildcard *.py)
 
 dist_files = Makefile $(python_files)
 
-SUBDIRS = servers
 
 all: default-subdirs default-all
 
@@ -29,5 +28,5 @@ dist: default-dist
 
 clean: clean-subdirs default-clean
 
-include ../Make.rules
-include ../Make.defs
+include ../../Make.rules
+include ../../Make.defs
