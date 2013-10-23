@@ -25,6 +25,7 @@ import sys
 import os
 import pprint
 import pwd
+import subprocess
 import tempfile
 import types
 import unittest
@@ -649,6 +650,33 @@ class TestCase(unittest.TestCase, MockMixIn):
             diff = '\n'.join(list(difflib.unified_diff(data0.splitlines(),
                     data1.splitlines()))[2:])
             self.fail(diff)
+
+    def assertEqualWithDiff(self, actual, expected):
+        if actual == expected:
+            return
+        if actual and expected:
+            actualF = tempfile.NamedTemporaryFile(prefix='actual-')
+            actualF.write(actual)
+            actualF.flush()
+
+            expectedF = tempfile.NamedTemporaryFile(prefix='expected-')
+            expectedF.write(expected)
+            expectedF.flush()
+
+            proc = subprocess.Popen(['diff', '-u',
+                expectedF.name, actualF.name],
+                shell=False, stdout=subprocess.PIPE)
+            diff, _ = proc.communicate()
+
+            raise self.failureException("Results do not match.\nDiff:\n%s"
+                    % (diff,))
+        elif actual:
+            raise self.failureException("Expected no output, actual "
+                    "result is:\n%s" % (actual,))
+        else:
+            raise self.failureException("Got no output, expected "
+                    "result is:\n%s" % (expected,))
+
 
 class TestCaseWithWorkDir(TestCase):
     testDirName = 'testcase-'
