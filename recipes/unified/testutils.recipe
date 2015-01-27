@@ -27,6 +27,7 @@ class TestUtils(CPackageRecipe):
     if plat == 'rpath':
         buildRequires = [
             'python:devel',
+            'git',
           ]
     elif plat == 'centos' and encapsulated:
         if embedded:
