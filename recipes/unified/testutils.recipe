@@ -47,7 +47,7 @@ class TestUtils(CPackageRecipe):
             r.macros.pyinc = '%(includedir)s/python%(pyver)s'
             r.macros.sitepkgs = '%(libdir)s/python%(pyver)s/site-packages'
 
-        r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
+        r.addGitSnapshot('http://scc.eng.rpath.com/git/testutils.git')
         if r.embedded:
             r.Replace("/usr/bin/python",
                 "/usr/conary/bin/python",
