@@ -38,6 +38,7 @@ class GunicornServer(object):
                     '--workers', str(workers),
                     '--timeout', str(timeout or 0),
                     '--access-logfile', self.accessLog,
+                    '--log-file', self.errorLog,
                     application,
                     ],
                 environ=environ,
