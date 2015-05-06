@@ -15,19 +15,21 @@
 #
 
 
-loadSuperClass('rpathpackage=centos.rpath.com@rpath:centos-5-common')
-class TestUtils(CPackageRecipe, RpathPackageRecipe):
-    name = 'testutils'
-    version = 'tip'
-
-    buildRequires = [
-        'python-conary:devel',
-      ]
+class ConaryTestEnv(PackageRecipe):
+    name = 'conary-testenv'
+    version = '1'
 
     def setup(r):
-        r.rpathSetup()
-        r.addMercurialSnapshot('http://scc.eng.rpath.com/infra/testutils')
-        r.MakeInstall('PYTHON=%(bindir)s/python'
-                      ' sitedir=%(sitepkgs)s')
-        #r.Install('scripts/coverage_dump.py', '%(bindir)s/coverage_dump', 
-        #          mode=0755)
+        r.Create('/etc/mtab')
+        r.Create('/usr/share/rmake/file-capabilities',
+            contents="""\
+/usr/bin/python\0cap_sys_chroot+ep\0
+""")
+
+        r.ScriptPostInstall(contents="""\
+#!/bin/bash
+HOSTS="testproject.rpath.local2 test.rpath.local test.rpath.local2"
+if ! grep -q "test.rpath.local" /etc/hosts; then
+    echo "127.0.0.1 $HOSTS" >>/etc/hosts
+fi
+""")
