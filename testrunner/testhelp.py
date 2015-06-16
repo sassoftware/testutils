@@ -116,9 +116,9 @@ class TestSuiteHandler(testhandler.TestSuiteHandler):
 
     suiteClass = unittest.TestSuite
 
-    def __init__(self, individual,
+    def __init__(self, individual, testPath=None,
             # DEPRECATED:
-            topdir=None, conaryDir=None, testPath=None):
+            topdir=None, conaryDir=None):
 
         global _handler
         _handler = self
@@ -127,6 +127,7 @@ class TestSuiteHandler(testhandler.TestSuiteHandler):
         cfg = CFG()
         cfg.isIndividual = individual
         cfg.cleanTestDirs = not individual
+        cfg.testPath = testPath
         testhandler.TestSuiteHandler.__init__(self, cfg, None, self.suiteClass)
 
     def getCoverageExclusions(self, environ):

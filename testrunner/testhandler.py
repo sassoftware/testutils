@@ -25,7 +25,6 @@ import types
 import unittest
 
 from testrunner import output
-from testrunner import pathManager
 
 
 class Loader(unittest.TestLoader):
@@ -250,9 +249,8 @@ class _TestSuiteHandler(object):
           (results.erroredTests + results.failedTests)))
 
     def _getTestsToRun(self, argList=[], split=None):
-        topdir = os.path.realpath(pathManager.getPath('TEST_PATH'))
+        topdir = os.path.realpath(self.cfg.testPath)
         tests = []
-        cwd = os.getcwd()
         argsUsedAsFilter = set()
         for (dirpath, dirnames, filenames) in os.walk(topdir):
             for f in filenames:
@@ -514,9 +512,8 @@ class CoverageTestSuiteHandler(_TestSuiteHandler):
             raise RuntimeError, 'no such file(s): %s' % ' '.join(notExists)
 
         cw = coveragewrapper.CoverageWrapper(environ['coverage'],
-                                             pathManager.getPath('TEST_PATH') + '/.coverage',
-                                             os.getcwd() + '/annotate',
-                                             baseDirs)
+                os.path.join(self.cfg.testPath, '.coverage'),
+                os.path.join(os.getcwd(), 'annotate'), baseDirs)
         if not options.resume:
             cw.reset()
         argv.append('--already-covering')

@@ -195,7 +195,6 @@ class TestCase(unittest.TestCase, MockMixIn):
         self.owner = os_utils.effectiveUser
         self.group = os_utils.effectiveGroup
 
-        import testrunner.pathManager
         self.mockObjects = []
         self.openFds = set()
 

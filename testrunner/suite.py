@@ -23,7 +23,6 @@ import unittest
 
 class TestSuite(object):
     individual = False
-    pathManager = None
     testsuite_module = None
     # Number of directories to strip off from testsuite.py's filename in order
     # to get to the testsuite's top level
@@ -40,10 +39,6 @@ class TestSuite(object):
     def setup(self):
         if self.setupDone:
             return
-        if self.pathManager is None:
-            from testrunner import pathManager
-            self.__class__.pathManager = pathManager
-
         self.setupTestDir()
         self.setupDefaultVars()
         self.setupPaths()
@@ -54,22 +49,11 @@ class TestSuite(object):
         self.setupDone = True
 
     def setupDefaultVars(self):
-        for varname in self.execPathVarNames:
-            existenceOptional = False
-            if isinstance(varname,tuple):
-                varname,existenceOptional = varname
-            self.pathManager.addExecPath(varname,
-                                         existenceOptional=existenceOptional)
-        for varname in self.resourceVarNames:
-            existenceOptional = False
-            if isinstance(varname,tuple):
-                varname,existenceOptional = varname
-            self.pathManager.addResourcePath(varname,
-                                         existenceOptional=existenceOptional)
+        pass
 
     def setupTestDir(self):
-        testPath = self.getTestTopDir()
-        self.pathManager.addExecPath('TEST_PATH', testPath)
+        self.testPath = self.getTestTopDir()
+        os.environ['TEST_PATH'] = self.testPath
 
     def setupModules(self):
         from testrunner.testhelp import context, TestCase, findPorts, SkipTestException
@@ -132,8 +116,6 @@ class TestSuite(object):
         self.setup()
         from testrunner import testhelp
 
-        testPath = os.getenv('TEST_PATH')
-
         class Handler(testhelp.TestSuiteHandler):
             suiteClass = self.__class__.suiteClass
             def getCoverageDirs(slf, environ):
@@ -154,7 +136,7 @@ class TestSuite(object):
             def sortTests(slf, tests):
                 return self.sortTests(tests)
 
-        handler = Handler(individual=individual)
+        handler = Handler(individual=individual, testPath=self.testPath)
 
         if argv is None:
             argv = list(sys.argv)
