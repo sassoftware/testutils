@@ -1,0 +1,136 @@
+#
+# Conoseright (c) SAS Institute Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+class NoseTestPackageRecipe(PackageRecipe):
+    name = 'nosetestpackage'
+    version = '1'
+
+    Flags.coverage = True
+    Flags.test = True
+
+    buildRequires = [
+        'diffutils:rpm',
+        'python-nose:python',
+        'python-nose:runtime',
+        'python-coverage:python'
+      ]
+
+    # Location of tests
+    testDir = 'tests'
+
+    # Which paths we should cover
+    codeDirs = []
+
+    # Other things that need to be in PYTHONPATH when tests are run
+    pythonPath = []
+
+    # test suite to run
+    testsuite = "nosetests"
+
+    extraEnviron = None
+
+    def setup(r):
+        r.setupSource()
+        if Flags.test:
+            r.test()
+        r.install()
+
+    def setupSource(r):
+        pass
+
+    def install(r):
+        pass
+
+    def test(r):
+        r.config = {}
+        environ = r.setupEnvironment()
+        # since r.config is already visible to run_tests, we shouldn't pass it
+        # as an argument
+        r.run_tests(do_coverage=Flags.coverage, configuration=r.config,
+            environ=environ, testsuite=r.testsuite)
+
+    def setupEnvironment(r):
+        if r.extraEnviron:
+            return r.extraEnviron
+        return ""
+
+    def run_tests(r, do_coverage=True, configuration=None,
+            testsuite='nosetests', prefix=None, environ=''):
+        r.macros.bindir = '%(pyroot)s/bin'
+        r.macros.datadir = '%(pyroot)s/share'
+        r.macros.includedir = '%(pyroot)s/include'
+        r.macros.pybin = '%(pyroot)s/bin/python%(pyver)s'
+        r.macros.pydir = '%(pylib)s/python%(pyver)s/site-packages'
+        r.macros.pyinc = '%(pyroot)s/include/python%(pyver)s'
+        r.macros.pylib = '%(pyroot)s/%(lib)s'
+        r.macros.pyroot = '/usr'
+        r.macros.sbindir = '%(pyroot)s/sbin'
+
+
+        if configuration is None:
+            configuration = {}
+        if 'arch' not in configuration:
+            configuration['arch'] = Arch.getCurrentArch()._name
+
+        r.macros.testinfodir = '/usr/share/testinfo/%(name)s-%(version)s'
+        r.macros.testoutputdir = '%(testinfodir)s/tests'
+        r.macros.coverdir = '%(testinfodir)s/coverage'
+        r.MakeDirs(r.macros.testoutputdir, r.macros.coverdir)
+
+        r.macros.pythonpath = ':'.join(r.pythonPath)
+        r.macros.testsuitedir = r.testDir
+
+        r.macros.testsuite = testsuite
+        if do_coverage:
+            r.macros.coverage = '--with-coverage --cover-xml ' + \
+                '--cover-xml-file=%(destdir)s/%(coverdir)s/coverage.xml ' + \
+                ' '.join([('--cover-package=%(pydir)s/' + d) for d in r.codeDirs])
+        else:
+            r.macros.coverage = ''
+        r.macros.xml_prefix = prefix and '--xunit-testsuite-name "%s"' % prefix or ''
+        r.macros.extra_environ = environ
+
+        # tests
+        r.Run('PYTHONPATH="%(pythonpath)s" CONARY_PATH="%(pydir)s/" '
+              '%(extra_environ)s '
+              '%(bindir)s/%(testsuite)s -v --with-xunit '
+              '--xunit-file="%(destdir)s%(testoutputdir)s/output.xml" '
+              '--always-succeed '
+              '%(coverage)s %(xml_prefix)s %(testsuitedir)s')
+
+        # policy
+        r.ComponentSpec('testinfo', '%(testinfodir)s/.*')
+        r.ByDefault(exceptions=[':testinfo'])
+
+    def install_lib(r):
+        # Install the testsuite so that other testsuites can consume it
+        r.macros.testsuite_output = '%(libdir)s/%(name)s'
+        r.MakeDirs('%(testsuite_output)s')
+        r.Run('cp -a * %(destdir)s%(testsuite_output)s/')
+
+        # These archives are there for the testsuite, of course they'll cause
+        # problems when actually being packaged.
+        r.NormalizeCompression(exceptions='.*')
+        # EnforceJavaBuildRequirements is not useful here, if we got pass the
+        # Java provides/requires extraction we have the build requirements
+        # already met.
+        #r.EnforceJavaBuildRequirements(exceptions='.*')
+        r.Requires(exceptions='%(testsuite_output)s/archive/.*')
+        r.Provides(exceptions='%(testsuite_output)s/archive/.*')
+        r.Flavor(exceptions='%(testsuite_output)s/archive/.*')
+        r.Strip(exceptions='%(testsuite_output)s/archive/.*')
+
+
